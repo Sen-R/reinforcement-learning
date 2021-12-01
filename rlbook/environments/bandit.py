@@ -3,11 +3,11 @@
 This module provides an implementation of a multi-armed bandit environment.
 """
 
-
 import numpy as np
+from .base import Environment
 
 
-class MultiArmBandit:
+class MultiArmBandit(Environment):
     """A multi-armed bandit.
 
     Class representing a multi-armed bandit. Pulling one of its levers
@@ -36,3 +36,7 @@ class MultiArmBandit:
         return self._rng.normal(
             loc=self.means[lever], scale=self.sigmas[lever]
         )
+
+    def state(self):
+        """Bandit is stateless so always returns `None`."""
+        return None
