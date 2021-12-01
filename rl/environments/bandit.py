@@ -40,3 +40,31 @@ class MultiArmBandit(Environment):
     def state(self):
         """Bandit is stateless so always returns `None`."""
         return None
+
+
+def random_bandit(k, *, mean_params, sigma_params, random_state=None):
+    """Returns a randomly generated `k`-armed bandit instance.
+
+    Args:
+      k: number of levers required on the bandit to be returned
+      mean_params: tuple containing location and scale parameters for
+        the normal distribution from which the mean rewards (per lever) will
+        be drawn
+      scale_params: tuple containing the location and scale parameters for
+        the normal distribution from which the reward standard deviations
+        (per lever) will be drawn.
+      random_state: `None`, `int`, `np.random.Generator` etc to initialise
+        RNG. Note this is currently used to initialise both the RNG used
+        to determine the bandit's configuration, and also to initialise
+        the RNG embedded within the bandit itself.
+
+    Returns:
+        `MultiArmBandit` instance with randomly chosen reward distributions
+        for each of its `k` levers.
+    """
+    rng = np.random.default_rng(random_state)
+    means = rng.normal(loc=mean_params[0], scale=mean_params[1], size=(k,))
+    sigmas = rng.normal(loc=sigma_params[0], scale=sigma_params[1], size=(k,))
+    return MultiArmBandit(
+        means=means, sigmas=sigmas, random_state=random_state
+    )
