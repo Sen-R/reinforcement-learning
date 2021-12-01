@@ -4,7 +4,7 @@ from rlbook.environments.bandit import MultiArmBandit
 
 
 class TestBandit(unittest.TestCase):
-    def test_bandit_setup(self):
+    def test_bandit_init(self):
         means = [1.0, 2.0, 3.0]
         sigmas = [1.0, 1.5, 0.5]
         b = MultiArmBandit(means, sigmas)
