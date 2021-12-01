@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from rlbook.agents.random import DiscreteRandomAgent
+from rl.agents.random import DiscreteRandomAgent
 
 
 class TestRandomAgent(unittest.TestCase):

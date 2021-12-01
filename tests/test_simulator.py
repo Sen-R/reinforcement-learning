@@ -1,7 +1,7 @@
 import unittest
-from rlbook.environments.base import Environment
-from rlbook.agents.base import Agent
-from rlbook.simulator import SingleAgentWaitingSimulator, History
+from rl.environments.base import Environment
+from rl.agents.base import Agent
+from rl.simulator import SingleAgentWaitingSimulator, History
 
 
 mock_tape = []
