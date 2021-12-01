@@ -8,8 +8,12 @@ class DiscreteRandomAgent(Agent):
     """Randomly acting agent for discrete action spaces."""
 
     def __init__(self, n_actions, random_state=None):
-        self.n_actions = n_actions
+        self._n_actions = n_actions
         self._rng = np.random.default_rng(random_state)
+
+    @property
+    def n_actions(self):
+        return self._n_actions
 
     def action(self, state=None):
         """Note state signal can be `None` if desired. (E.g. for multi-armed

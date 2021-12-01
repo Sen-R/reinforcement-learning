@@ -22,6 +22,10 @@ class MockAgent(Agent):
         self.tape.append(("reward", r))
         pass
 
+    @property
+    def n_actions(self):
+        return 1
+
 
 class MockEnvironment(Environment):
     """Mock environment that logs calls to its methods."""

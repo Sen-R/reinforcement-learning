@@ -15,3 +15,9 @@ class Agent(ABC):
     def reward(self, r):
         """Sends reward signal `r` to the agent."""
         pass
+
+    @property
+    @abstractmethod
+    def n_actions(self):
+        """Returns size of (discrete) action space known to agent."""
+        pass
