@@ -7,7 +7,7 @@ import numpy as np
 from .base import Environment
 
 
-class MultiArmBandit(Environment):
+class MultiArmedBandit(Environment):
     """A multi-armed bandit.
 
     Class representing a multi-armed bandit. Pulling one of its levers
@@ -59,12 +59,12 @@ def random_bandit(k, *, mean_params, sigma_params, random_state=None):
         the RNG embedded within the bandit itself.
 
     Returns:
-        `MultiArmBandit` instance with randomly chosen reward distributions
+        `MultiArmedBandit` instance with randomly chosen reward distributions
         for each of its `k` levers.
     """
     rng = np.random.default_rng(random_state)
     means = rng.normal(loc=mean_params[0], scale=mean_params[1], size=(k,))
     sigmas = rng.normal(loc=sigma_params[0], scale=sigma_params[1], size=(k,))
-    return MultiArmBandit(
+    return MultiArmedBandit(
         means=means, sigmas=sigmas, random_state=random_state
     )
