@@ -1,6 +1,6 @@
 import unittest
 from numpy.testing import assert_almost_equal
-from rlbook.bandit import MultiArmBandit
+from rlbook.environments.bandit import MultiArmBandit
 
 
 class TestBandit(unittest.TestCase):
