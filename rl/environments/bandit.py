@@ -65,6 +65,4 @@ def random_bandit(k, *, mean_params, sigma_params, random_state=None):
     rng = np.random.default_rng(random_state)
     means = rng.normal(loc=mean_params[0], scale=mean_params[1], size=(k,))
     sigmas = rng.normal(loc=sigma_params[0], scale=sigma_params[1], size=(k,))
-    return MultiArmedBandit(
-        means=means, sigmas=sigmas, random_state=rng
-    )
+    return MultiArmedBandit(means=means, sigmas=sigmas, random_state=rng)

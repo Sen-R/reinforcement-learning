@@ -6,10 +6,15 @@ from abc import ABC, abstractmethod
 class Agent(ABC):
     """Base class for agents."""
 
-    @abstractmethod
     def action(self, state):
-        """Requests desired action from the agent given state signal."""
-        pass
+        """Requests desired action from the agent given state signal.
+
+        By default it calls `_get_action_selector` to retrieve an
+        `ActionSelector` instance, which is then called to select a specified
+        action.
+        """
+        action_selector = self._get_action_selector(state)
+        return action_selector()
 
     @abstractmethod
     def reward(self, r):
@@ -20,4 +25,9 @@ class Agent(ABC):
     @abstractmethod
     def n_actions(self):
         """Returns size of (discrete) action space known to agent."""
+        pass
+
+    @abstractmethod
+    def _get_action_selector(self, state):
+        """Returns (potentially stochastic) `ActionSelector` given state."""
         pass

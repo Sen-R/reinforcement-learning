@@ -4,11 +4,10 @@ from rl.agents.random import DiscreteRandomAgent
 
 
 class TestRandomAgent(unittest.TestCase):
-    def test_agent_init(self):
+    def test_agent_properties(self):
         n_actions = 5
         agent = DiscreteRandomAgent(n_actions)
         self.assertEqual(agent.n_actions, n_actions)
-        self.assertIsInstance(agent._rng, np.random.Generator)
 
     def test_agent_action(self):
         """Tests whether agent can return an action."""

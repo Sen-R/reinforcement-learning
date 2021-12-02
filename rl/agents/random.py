@@ -1,7 +1,7 @@
 """Implementation of agents that take random actions."""
 
-import numpy as np
 from .base import Agent
+from .action_selector import UniformDiscreteActionSelector
 
 
 class DiscreteRandomAgent(Agent):
@@ -9,18 +9,22 @@ class DiscreteRandomAgent(Agent):
 
     def __init__(self, n_actions, random_state=None):
         self._n_actions = n_actions
-        self._rng = np.random.default_rng(random_state)
+        self._action_selector = UniformDiscreteActionSelector(
+            self._n_actions, random_state=random_state
+        )
 
     @property
     def n_actions(self):
         return self._n_actions
 
     def action(self, state=None):
-        """Note state signal can be `None` if desired. (E.g. for multi-armed
-        bandit problem.)
-        """
-        return self._rng.integers(self.n_actions)
+        """Allows state not to be specified, as it doesn't matter for
+        a random agent."""
+        return super().action(state)
 
     def reward(self, r):
         """No-op in the case of a random agent."""
         pass
+
+    def _get_action_selector(self, _):
+        return self._action_selector
