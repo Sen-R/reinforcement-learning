@@ -1,3 +1,20 @@
+"""Action selector implementations.
+
+Action selectors are objects that when called return a desired
+action. These actions may be stochastically chosen (e.g. randomly chosen
+from a list of candidates) depending on the choice of `ActionSelector`
+implementation, and how it is configured.
+
+Examples include the following
+* `DeterministicActionSelector`: always returns the same (specified) action
+* `UniformDiscreteActionSelector`: selections an action uniformly at random
+  from a specified discrete action space
+* `NoisyActionSelector`: uses either a "preferred" action selector (with
+  probability `1 - epsilon`) or a "noise" action selector (with probability
+  `epsilon`) to determine the action. Useful, for example, to implement an
+  epsilon-greedy agent.
+"""
+
 from abc import ABC, abstractmethod
 import numpy as np
 
