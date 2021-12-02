@@ -54,9 +54,9 @@ def random_bandit(k, *, mean_params, sigma_params, random_state=None):
         the normal distribution from which the reward standard deviations
         (per lever) will be drawn.
       random_state: `None`, `int`, `np.random.Generator` etc to initialise
-        RNG. Note this is currently used to initialise both the RNG used
-        to determine the bandit's configuration, and also to initialise
-        the RNG embedded within the bandit itself.
+        RNG. Note the RNG is first used to initialise the bandit's
+        configuration and then passed to the bandit as the RNG for determining
+        rewards.
 
     Returns:
         `MultiArmedBandit` instance with randomly chosen reward distributions
@@ -66,5 +66,5 @@ def random_bandit(k, *, mean_params, sigma_params, random_state=None):
     means = rng.normal(loc=mean_params[0], scale=mean_params[1], size=(k,))
     sigmas = rng.normal(loc=sigma_params[0], scale=sigma_params[1], size=(k,))
     return MultiArmedBandit(
-        means=means, sigmas=sigmas, random_state=random_state
+        means=means, sigmas=sigmas, random_state=rng
     )
