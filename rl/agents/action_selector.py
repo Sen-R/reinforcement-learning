@@ -80,3 +80,26 @@ class NoisyActionSelector(ActionSelector):
             return self.noise()
         else:
             return self.preferred()
+
+
+def EpsilonGreedyActionSelector(
+    epsilon, chosen_action, n_actions, *, random_state=None
+):
+    """Returns `NoisyActionSelector` selector for epsilon-greedy selection.
+
+    Helper function to create a `NoisyActionSelector` instance configured
+    for epsilon greedy action selection from a discrete action space.
+
+    Args:
+      epsilon: probability of choosing a (uniformly) random action
+      chosen_action: desired (greedy) action
+      n_actions: size of discrete action space
+
+    Returns:
+      `NoisyActionSelector` instance that when called performs epsilon-greedy
+      action selection.
+    """
+    rng = np.random.default_rng(random_state)
+    preferred = DeterministicActionSelector(chosen_action)
+    noise = UniformDiscreteActionSelector(n_actions, random_state=rng)
+    return NoisyActionSelector(epsilon, preferred, noise, random_state=rng)
