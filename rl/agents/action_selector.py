@@ -63,6 +63,15 @@ class UniformDiscreteActionSelector(ActionSelector):
 
 
 class NoisyActionSelector(ActionSelector):
+    """Noisy action selector.
+
+    With probability `1 - epsilon` this uses `preferred_selector` to
+    select actions; with probability `epsilon` this uses `noise_selector`
+    to select actions. Useful, for example, for implementing an
+    epsilon-greedy agent, or any other agent (e.g. continuous action spaces)
+    where you wish to inject noise into action decisions.
+    """
+
     def __init__(
         self, epsilon, preferred_selector, noise_selector, *, random_state=None
     ):
