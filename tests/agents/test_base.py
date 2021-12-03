@@ -18,3 +18,23 @@ class TestBase(unittest.TestCase):
         chosen_action = Agent.action(agent, state=state)
         self.assertEqual(chosen_action, expected_action)
         agent._get_action_selector.assert_called_with(state)
+
+    def test_last_action_corresponds_to_chosen_action(self):
+        """Tests whether agent.last_action matches the action last provided
+        by the agent."""
+        # Parameters
+        actions = [0, 1, 2]  # arbitrary actions to call
+        action_selectors = [DeterministicActionSelector(a) for a in actions]
+
+        # Test:
+        # Create mock agent that for which _get_action_selector
+        # returns a sequence of deterministic action selections and
+        # check whether calls to action correctly update the agent's
+        # last_action field.
+        MockAgent = create_autospec(Agent)
+        agent = MockAgent()
+        agent._get_action_selector.side_effect = action_selectors
+        for a in actions:
+            chosen_action = Agent.action(agent, state=None)
+            self.assertEqual(chosen_action, a)  # sanity check
+            self.assertEqual(agent.last_action, chosen_action)

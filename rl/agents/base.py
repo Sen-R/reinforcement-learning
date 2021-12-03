@@ -14,7 +14,9 @@ class Agent(ABC):
         action.
         """
         action_selector = self._get_action_selector(state)
-        return action_selector()
+        chosen_action = action_selector()
+        self.last_action = chosen_action
+        return chosen_action
 
     @abstractmethod
     def reward(self, r):
