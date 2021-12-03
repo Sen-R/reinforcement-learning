@@ -63,10 +63,6 @@ class RewardAveragingEpsilonGreedyAgent(Agent):
         self.alpha = learning_rate_schedule
 
     @property
-    def n_actions(self) -> int:
-        return self._n_actions
-
-    @property
     def action_counts(self) -> List[int]:
         return self._action_counts
 

@@ -53,12 +53,6 @@ class Agent(ABC):
         # to determine its next action.
         del self.last_state, self.last_action
 
-    @property
-    @abstractmethod
-    def n_actions(self) -> int:
-        """Returns size of (discrete) action space known to agent."""
-        pass
-
     @abstractmethod
     def _get_action_selector(self, state) -> Callable[[], Any]:
         """Returns (potentially stochastic) `ActionSelector` given state."""

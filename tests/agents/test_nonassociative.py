@@ -14,7 +14,6 @@ class TestRewardAveragingEpsilonGreedyAgent(unittest.TestCase):
         agent = RewardAveragingEpsilonGreedyAgent(k)
 
         # Test
-        self.assertEqual(agent.n_actions, k)
         assert_array_equal(agent.Q, [0.0] * k)  # Q initialised to zero
         assert_array_equal(agent.action_counts, [0] * k)  # counts are zero
         self.assertEqual(agent.epsilon, 0.0)  # default epsilon is zero
