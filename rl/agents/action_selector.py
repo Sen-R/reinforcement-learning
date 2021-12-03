@@ -54,11 +54,11 @@ class UniformDiscreteActionSelector(ActionSelector):
         the random number generator.
     """
 
-    def __init__(self, n_actions, *, random_state=None):
+    def __init__(self, n_actions: int, *, random_state=None):
         self.n_actions = n_actions
         self._rng = np.random.default_rng(random_state)
 
-    def __call__(self):
+    def __call__(self) -> int:
         return self._rng.integers(self.n_actions)
 
 
@@ -73,16 +73,21 @@ class NoisyActionSelector(ActionSelector):
     """
 
     def __init__(
-        self, epsilon, preferred_selector, noise_selector, *, random_state=None
+        self,
+        epsilon: float,
+        preferred_selector: ActionSelector,
+        noise_selector: ActionSelector,
+        *,
+        random_state=None,
     ):
         self.epsilon = epsilon
         self.preferred = preferred_selector
         self.noise = noise_selector
         self._rng = np.random.default_rng(random_state)
 
-    def select_noise_not_preferred(self):
+    def select_noise_not_preferred(self) -> bool:
         """Returns `True` (indicating 'select noise') epsilon of the time."""
-        return self._rng.binomial(n=1, p=self.epsilon)
+        return bool(self._rng.binomial(n=1, p=self.epsilon))
 
     def __call__(self):
         if self.select_noise_not_preferred():
@@ -91,13 +96,11 @@ class NoisyActionSelector(ActionSelector):
             return self.preferred()
 
 
-def EpsilonGreedyActionSelector(
-    epsilon, chosen_action, n_actions, *, random_state=None
-):
-    """Returns `NoisyActionSelector` selector for epsilon-greedy selection.
+class EpsilonGreedyActionSelector(NoisyActionSelector):
+    """Specialised `NoisyActionSelector` for epsilon-greedy selection.
 
-    Helper function to create a `NoisyActionSelector` instance configured
-    for epsilon greedy action selection from a discrete action space.
+    Subclass of `NoisyActionSelector` configured for epsilon greedy action
+    selection from a discrete action space.
 
     Args:
       epsilon: probability of choosing a (uniformly) random action
@@ -108,7 +111,21 @@ def EpsilonGreedyActionSelector(
       `NoisyActionSelector` instance that when called performs epsilon-greedy
       action selection.
     """
-    rng = np.random.default_rng(random_state)
-    preferred = DeterministicActionSelector(chosen_action)
-    noise = UniformDiscreteActionSelector(n_actions, random_state=rng)
-    return NoisyActionSelector(epsilon, preferred, noise, random_state=rng)
+
+    # Specialising superclass types for this subclass (so type checker knows
+    # their specialised types)
+    preferred: DeterministicActionSelector
+    noise: UniformDiscreteActionSelector
+
+    def __init__(
+        self,
+        epsilon: float,
+        chosen_action: int,
+        n_actions: int,
+        *,
+        random_state=None,
+    ):
+        rng = np.random.default_rng(random_state)
+        preferred = DeterministicActionSelector(chosen_action)
+        noise = UniformDiscreteActionSelector(n_actions, random_state=rng)
+        super().__init__(epsilon, preferred, noise, random_state=rng)

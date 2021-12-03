@@ -58,7 +58,7 @@ class RewardAveragingEpsilonGreedyAgent(Agent):
         self._action_counts[last_action] += 1
 
     def _get_action_selector(self, state=None) -> NoisyActionSelector:
-        desired_action = np.argmax(self.Q)
+        desired_action = int(np.argmax(self.Q))
         return EpsilonGreedyActionSelector(
             self.epsilon,
             desired_action,
