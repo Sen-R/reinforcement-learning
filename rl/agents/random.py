@@ -17,14 +17,9 @@ class DiscreteRandomAgent(Agent):
     def n_actions(self):
         return self._n_actions
 
-    def action(self, state=None):
-        """Allows state not to be specified, as it doesn't matter for
-        a random agent."""
-        return super().action(state)
-
-    def reward(self, r):
-        """No-op in the case of a random agent."""
-        pass
-
     def _get_action_selector(self, _):
         return self._action_selector
+
+    def _process_reward(self, last_state, last_action, reward):
+        """No-op in the case of a random agent."""
+        pass

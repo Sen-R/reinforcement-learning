@@ -38,3 +38,21 @@ class TestBase(unittest.TestCase):
             chosen_action = Agent.action(agent, state=None)
             self.assertEqual(chosen_action, a)  # sanity check
             self.assertEqual(agent.last_action, chosen_action)
+            Agent.reward(agent, 0)  # arbitrary reward to advance loop
+
+    def test_last_state_corresponds_to_last_received_state(self):
+        """Tests whether agent.last_state corresponds to the last state
+        received when action method was called."""
+        # Parameters
+        states = [1, 2]  # arbitrary, but changing
+
+        # Test:
+        # Create mock agent, sending it a sequence of states and checking
+        # that last_state corresponds correctly to the last sent state after
+        # action is called
+        MockAgent = create_autospec(Agent)
+        agent = MockAgent()
+        for s in states:
+            Agent.action(agent, s)
+            self.assertEqual(agent.last_state, s)
+            Agent.reward(agent, 0)  # arbitrary reward

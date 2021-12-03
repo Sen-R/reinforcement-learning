@@ -37,17 +37,17 @@ class RewardAveragingEpsilonGreedyAgent(Agent):
         """Returns array of estimated action values."""
         return self._action_values
 
-    def reward(self, r):
+    def _process_reward(self, last_state, last_action, reward):
         # Update action values first
-        n = self._action_counts[self.last_action]
+        n = self._action_counts[last_action]
         alpha_n = self.alpha(n)
-        self._action_values[self.last_action] = soft_update(
-            self._action_values[self.last_action], r, alpha_n
+        self._action_values[last_action] = soft_update(
+            self._action_values[last_action], reward, alpha_n
         )
 
         # Update action counts after
         # TODO: refactor into base class?
-        self._action_counts[self.last_action] += 1
+        self._action_counts[last_action] += 1
 
     def _get_action_selector(self, state=None):
         desired_action = np.argmax(self.Q)

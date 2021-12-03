@@ -29,6 +29,9 @@ class MockAgent(Agent):
     def _get_action_selector(self, state):
         raise RuntimeError("shouldn't be called")
 
+    def _process_reward(self, last_state, last_action, reward):
+        pass
+
 
 class MockEnvironment(Environment):
     """Mock environment that logs calls to its methods."""

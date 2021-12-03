@@ -12,7 +12,7 @@ class TestRandomAgent(unittest.TestCase):
     def test_agent_action(self):
         """Tests whether agent can return an action."""
         agent = DiscreteRandomAgent(5, random_state=32)
-        action = agent.action()
+        action = agent.action(state=None)
         self.assertEqual(action, 4)
 
     def test_agent_action_works_with_different_state_signals(self):
@@ -30,4 +30,5 @@ class TestRandomAgent(unittest.TestCase):
         should be provided for compatibility with other agents.
         """
         agent = DiscreteRandomAgent(5, random_state=32)
+        agent.action(state=None)
         agent.reward(3)
