@@ -1,9 +1,9 @@
 from typing import List, Tuple
 import unittest
+from typing import Final
 from rl.environments.base import Environment
 from rl.agents.base import Agent
 from rl.simulator import SingleAgentWaitingSimulator, History
-from typing import Final
 from rl.agents.action_selector import DeterministicActionSelector
 
 mock_tape: List[Tuple] = []
