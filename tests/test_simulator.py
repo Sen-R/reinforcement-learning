@@ -2,7 +2,7 @@ import unittest
 from rl.environments.base import Environment
 from rl.agents.base import Agent
 from rl.simulator import SingleAgentWaitingSimulator, History
-
+from rl.agents.action_selector import DeterministicActionSelector
 
 mock_tape = []
 
@@ -14,23 +14,16 @@ class MockAgent(Agent):
         self.tape = tape
         self.action_to_return = 0
 
-    def action(self, state):
+    def _get_action_selector(self, state):
         self.tape.append(("action", state, self.action_to_return))
-        return self.action_to_return
-
-    def reward(self, r):
-        self.tape.append(("reward", r))
-        pass
+        return DeterministicActionSelector(self.action_to_return)
 
     @property
     def n_actions(self):
         return 1
 
-    def _get_action_selector(self, state):
-        raise RuntimeError("shouldn't be called")
-
     def _process_reward(self, last_state, last_action, reward):
-        pass
+        self.tape.append(("reward", reward))
 
 
 class MockEnvironment(Environment):
