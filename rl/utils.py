@@ -11,4 +11,4 @@ def soft_update(current, target, alpha):
     In the limit `alpha == 0` corresponds to making no change to `current`.
     In the limit `alpha == 1` corresponds to replacing `current` by `target`.
     """
-    return (1. - alpha) * current + alpha * target
+    return (1.0 - alpha) * current + alpha * target

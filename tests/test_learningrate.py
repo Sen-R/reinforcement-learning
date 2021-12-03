@@ -19,4 +19,4 @@ class TestSampleAverageLearningRate(unittest.TestCase):
         lr = SampleAverageLearningRate()
         for n in range(10):
             with self.subTest(n=n):
-                self.assertEqual(lr(n), 1. / (n + 1))
+                self.assertEqual(lr(n), 1.0 / (n + 1))

@@ -33,4 +33,4 @@ class SampleAverageLearningRate(LearningRateSchedule):
     """
 
     def __call__(self, n):
-        return 1. / (n + 1)
+        return 1.0 / (n + 1)

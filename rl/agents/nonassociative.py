@@ -21,7 +21,7 @@ class RewardAveragingEpsilonGreedyAgent(Agent):
         self._action_counts = [0] * n_actions
         self.epsilon = epsilon
         if initial_action_values is None:
-            initial_action_values = [0.] * n_actions
+            initial_action_values = [0.0] * n_actions
         else:
             initial_action_values = list(initial_action_values)
         self._action_values = initial_action_values

@@ -83,16 +83,16 @@ class TestBase(unittest.TestCase):
     def test_reward_cannot_be_called_twice_in_a_row(self) -> None:
         agent = mock_agent()
         Agent.action(agent, state=None)
-        Agent.reward(agent, reward=0.)
+        Agent.reward(agent, reward=0.0)
         with self.assertRaises(RuntimeError):
-            Agent.reward(agent, reward=0.)  # raises as action not called
+            Agent.reward(agent, reward=0.0)  # raises as action not called
         Agent.action(agent, state=None)
-        Agent.reward(agent, reward=0.)  # OK now that action has been called
+        Agent.reward(agent, reward=0.0)  # OK now that action has been called
 
     def test_action_cannot_be_called_twice_in_a_row(self) -> None:
         agent = mock_agent()
         Agent.action(agent, state=None)
         with self.assertRaises(RuntimeError):
             Agent.action(agent, state=None)  # raises as reward not called
-        Agent.reward(agent, reward=0.)
+        Agent.reward(agent, reward=0.0)
         Agent.action(agent, state=None)  # OK now that reward has been called
