@@ -56,3 +56,20 @@ class TestBase(unittest.TestCase):
             Agent.action(agent, s)
             self.assertEqual(agent.last_state, s)
             Agent.reward(agent, 0)  # arbitrary reward
+
+    def test_reward_resets_last_state_and_last_action(self):
+        """Tests whether calling the reward method resets the last_state
+        and last_action fields in agent."""
+        state = 1  # arbitrary
+        MockAgent = create_autospec(Agent)
+        agent = MockAgent()
+
+        # Call Agent.action and first sanity check that last_* fields are set.
+        Agent.action(agent, state=state)
+        self.assertTrue(hasattr(agent, "last_action"))
+        self.assertTrue(hasattr(agent, "last_state"))
+
+        # Then call Agent.reward and check that these fields no longer set.
+        Agent.reward(agent, reward=0)
+        self.assertFalse(hasattr(agent, "last_action"))
+        self.assertFalse(hasattr(agent, "last_state"))

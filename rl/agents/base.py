@@ -23,8 +23,15 @@ class Agent(ABC):
 
     @final
     def reward(self, reward):
-        """Sends reward signal `r` to the agent."""
+        """Sends reward signal `r` to the agent.
+
+        After processing the reward (dispatched to the method
+        `_process_reward`), this method will remove the `last_state` and
+        `last_action` fields to show that the agent is ready for another
+        action step.
+        """
         self._process_reward(self.last_state, self.last_action, reward)
+        del self.last_state, self.last_action
 
     @property
     @abstractmethod
