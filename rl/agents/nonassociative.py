@@ -1,3 +1,9 @@
+"""Module implementing non-associative agents.
+
+These are agents that ignore state signals. Useful for learning in
+nonassociative settings, e.g. multi-armed bandits.
+"""
+
 from typing import List, Optional, Sequence
 import numpy as np
 from .base import Agent
@@ -8,6 +14,32 @@ from ..utils import soft_update
 
 
 class RewardAveragingEpsilonGreedyAgent(Agent):
+    """Implementation of epsilon greedy short-termist agent.
+
+    This agent is both epsilon greedy in how it selects actions and
+    short-termist in the sense that the perceived value of an action
+    is equated to the immediate reward obtained after the action. This is
+    fine for environments where consecutive actions yield independent
+    rewards, such as standard multi-armed bandit problems.
+
+    Agent learns by soft updating its estimated action values by the
+    reward that immediately follows each action. The alpha parameter for
+    the soft update rule can be controlled as a function of the number of
+    times that action has been taken in the past, allowing e.g. for
+    unweighted averaging over all observed rewards (per action) or for
+    exponential weighting towards recent observations.
+
+    Args:
+      n_actions: size of the action space
+      learning_rate_schedule: function mapping action count to soft update
+        parameter alpha. Can be one of the objects provided in the module
+        `rl.learningrate`
+      epsilon: probability of taking an action to explore rather than exploit
+      initial_action_values: initial estimates of the value of each action, by
+        default set to zero for all actions
+      random_state: `None`, `int`, `np.random.Generator` etc to initialise RNG
+    """
+
     def __init__(
         self,
         n_actions: int,
