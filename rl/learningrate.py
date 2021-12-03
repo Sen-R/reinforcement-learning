@@ -1,17 +1,7 @@
 """Collection of commonly used learning rate schedule functions."""
 
 
-from abc import ABC, abstractmethod
-
-
-class LearningRateSchedule(ABC):
-    @abstractmethod
-    def __call__(self, current_step_number):
-        """Returns learning rate for `step_number`."""
-        pass
-
-
-class ConstantLearningRate(LearningRateSchedule):
+class ConstantLearningRate:
     """Constant learning rate schedule of `alpha`."""
 
     def __init__(self, alpha):
@@ -21,7 +11,7 @@ class ConstantLearningRate(LearningRateSchedule):
         return self.alpha
 
 
-class SampleAverageLearningRate(LearningRateSchedule):
+class SampleAverageLearningRate:
     """Decaying "sample average" learning rate schedule.
 
     A learning rate schedule of the form `alpha_n = 1 / (n + 1)`.

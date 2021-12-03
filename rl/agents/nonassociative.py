@@ -1,9 +1,9 @@
-from typing import List, Callable
+from typing import List, Optional, Sequence
 import numpy as np
 from .base import Agent
+from ..custom_types import LearningRateSchedule
 from .action_selector import EpsilonGreedyActionSelector, NoisyActionSelector
 from ..learningrate import SampleAverageLearningRate
-from typing import Optional, Sequence
 from ..utils import soft_update
 
 
@@ -12,7 +12,7 @@ class RewardAveragingEpsilonGreedyAgent(Agent):
         self,
         n_actions: int,
         *,
-        learning_rate_schedule: Callable[[int], float] = None,
+        learning_rate_schedule: LearningRateSchedule = None,
         epsilon: float = 0.0,
         initial_action_values: Optional[Sequence[float]] = None,
         random_state=None,
