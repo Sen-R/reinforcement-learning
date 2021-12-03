@@ -6,23 +6,23 @@ nonassociative settings, e.g. multi-armed bandits.
 
 from typing import List, Optional, Sequence
 import numpy as np
-from ..agent import Agent
+from .base import Policy
 from ..custom_types import LearningRateSchedule
 from ..action_selector import EpsilonGreedyActionSelector, NoisyActionSelector
 from ..learningrate import SampleAverageLearningRate
 from ..utils import soft_update
 
 
-class RewardAveragingEpsilonGreedyAgent(Agent):
-    """Implementation of epsilon greedy short-termist agent.
+class RewardAveragingEpsilonGreedyPolicy(Policy):
+    """Implementation of epsilon greedy short-termist policy.
 
-    This agent is both epsilon greedy in how it selects actions and
+    This policy is both epsilon greedy in how it selects actions and
     short-termist in the sense that the perceived value of an action
     is equated to the immediate reward obtained after the action. This is
     fine for environments where consecutive actions yield independent
     rewards, such as standard multi-armed bandit problems.
 
-    Agent learns by soft updating its estimated action values by the
+    Policy learns by soft updating its estimated action values by the
     reward that immediately follows each action. The alpha parameter for
     the soft update rule can be controlled as a function of the number of
     times that action has been taken in the past, allowing e.g. for
@@ -71,9 +71,7 @@ class RewardAveragingEpsilonGreedyAgent(Agent):
         """Returns array of estimated action values."""
         return self._action_values
 
-    def _process_reward(
-        self, last_state, last_action: int, reward: float
-    ) -> None:
+    def update(self, last_state, last_action: int, reward: float) -> None:
         # Update action values first
         n = self._action_counts[last_action]
         alpha_n = self.alpha(n)
@@ -85,7 +83,7 @@ class RewardAveragingEpsilonGreedyAgent(Agent):
         # TODO: refactor into base class?
         self._action_counts[last_action] += 1
 
-    def _get_action_selector(self, state=None) -> NoisyActionSelector:
+    def __call__(self, state=None) -> NoisyActionSelector:
         desired_action = int(np.argmax(self.Q))
         return EpsilonGreedyActionSelector(
             self.epsilon,

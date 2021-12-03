@@ -1,10 +1,10 @@
-from typing import List, Tuple
+from typing import List, Tuple, Final
 import unittest
-from typing import Final
+from .fakes import FakePolicy
 from rl.environments.base import Environment
 from rl.agent import Agent
 from rl.simulator import SingleAgentWaitingSimulator, History
-from rl.action_selector import DeterministicActionSelector
+
 
 mock_tape: List[Tuple] = []
 
@@ -16,17 +16,15 @@ class MockAgent(Agent):
 
     def __init__(self, tape: List[Tuple]):
         self.tape = tape
+        super().__init__(FakePolicy(self.action_to_return))
 
-    def _get_action_selector(self, state) -> DeterministicActionSelector:
+    def action(self, state) -> int:
         self.tape.append(("action", state, self.action_to_return))
-        return DeterministicActionSelector(self.action_to_return)
+        return super().action(state)
 
-    @property
-    def n_actions(self) -> int:
-        return 1
-
-    def _process_reward(self, last_state, last_action, reward) -> None:
+    def reward(self, reward) -> None:
         self.tape.append(("reward", reward))
+        super().reward(reward)
 
 
 class MockEnvironment(Environment):

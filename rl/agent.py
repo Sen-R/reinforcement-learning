@@ -1,29 +1,44 @@
-"""Module defines base agent class."""
+"""Module defines Agent."""
 
-from abc import ABC, abstractmethod
-from typing import final, Any, Callable
+from typing import Any
+from rl.policies.base import Policy
 
 
-class Agent(ABC):
-    """Base class for agents."""
+class Agent:
+    """Agent that interacts with environments.
 
-    @final
-    def action(self, state) -> None:
+    `Agent` simply takes care of interaction with the environment (making sure
+    actions and rewards take place in right order, storing state between
+    events, etc); the brains of the operation is embedded in the agent's
+    `policy`.
+
+    Agent will also feedback the reward signal from the environment (along
+    with associated state and action) to enable to policy to update itself
+    (if it so desires).
+
+    Args:
+      policy: the `Policy` the agent should follow (and potentially inform
+        about rewards).
+    """
+
+    def __init__(self, policy: Policy):
+        self.policy = policy
+
+    def action(self, state) -> Any:
         """Requests desired action from the agent given state signal.
 
-        By default it calls `_get_action_selector` to retrieve an
-        `ActionSelector` instance, which is then called to select a specified
-        action.
+        Agent in turn requests an `ActionSelector` from its embedded policy,
+        which it calls to select a concrete action to return.
         """
         # Check that agent is in right state to deliver action
-        # (i.e. it's note expecting a reward)
+        # (i.e. it's not expecting a reward)
         if hasattr(self, "last_state") or hasattr(self, "last_action"):
             raise RuntimeError(
                 "agent hasn't been sent a reward signal for previous action"
             )
 
         # Select an action to return given the observed state signal.
-        action_selector = self._get_action_selector(state)
+        action_selector = self.policy(state)
         chosen_action = action_selector()
 
         # Save observed state and chosen action for use when processing
@@ -34,7 +49,6 @@ class Agent(ABC):
         # Done
         return chosen_action
 
-    @final
     def reward(self, reward) -> None:
         """Sends reward signal `reward` to the agent."""
         # Check that the agent is in right state to process reward signal,
@@ -46,19 +60,9 @@ class Agent(ABC):
                 "process any reward"
             )
 
-        # Call _process_reward method of concrete class
-        self._process_reward(self.last_state, self.last_action, reward)
+        # Update the policy
+        self.policy.update(self.last_state, self.last_action, reward)
 
         # Clear last state and action fields to indicate agent is ready
         # to determine its next action.
         del self.last_state, self.last_action
-
-    @abstractmethod
-    def _get_action_selector(self, state) -> Callable[[], Any]:
-        """Returns (potentially stochastic) `ActionSelector` given state."""
-        pass
-
-    @abstractmethod
-    def _process_reward(self, last_state, last_action, reward) -> None:
-        """Function to be implemented for agent to process received reward."""
-        pass
