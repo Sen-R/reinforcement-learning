@@ -15,22 +15,42 @@ class Agent(ABC):
         `ActionSelector` instance, which is then called to select a specified
         action.
         """
+        # Check that agent is in right state to deliver action
+        # (i.e. it's note expecting a reward)
+        if hasattr(self, "last_state") or hasattr(self, "last_action"):
+            raise RuntimeError(
+                "agent hasn't been sent a reward signal for previous action"
+            )
+
+        # Select an action to return given the observed state signal.
         action_selector = self._get_action_selector(state)
         chosen_action = action_selector()
+
+        # Save observed state and chosen action for use when processing
+        # reward signal to be obtained from environment
         self.last_state = state
         self.last_action = chosen_action
+
+        # Done
         return chosen_action
 
     @final
     def reward(self, reward):
-        """Sends reward signal `r` to the agent.
+        """Sends reward signal `reward` to the agent."""
+        # Check that the agent is in right state to process reward signal,
+        # i.e. it has selected an action already and hasn't yet received
+        # reward.
+        if not (hasattr(self, "last_state") or hasattr(self, "last_action")):
+            raise RuntimeError(
+                "agent's hasn't yet selected an action, so not ready to "
+                "process any reward"
+            )
 
-        After processing the reward (dispatched to the method
-        `_process_reward`), this method will remove the `last_state` and
-        `last_action` fields to show that the agent is ready for another
-        action step.
-        """
+        # Call _process_reward method of concrete class
         self._process_reward(self.last_state, self.last_action, reward)
+
+        # Clear last state and action fields to indicate agent is ready
+        # to determine its next action.
         del self.last_state, self.last_action
 
     @property

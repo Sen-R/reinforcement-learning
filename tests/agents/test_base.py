@@ -4,12 +4,16 @@ from rl.agents.base import Agent
 from rl.agents.action_selector import DeterministicActionSelector
 
 
+def mock_agent():
+    MockAgentType = create_autospec(Agent)
+    return MockAgentType()
+
+
 class TestBase(unittest.TestCase):
     def test_action_method(self):
         """Tests whether `action` method correctly calls `_get_action_selector`
         to determine which action to return"""
-        MockAgent = create_autospec(Agent)
-        agent = MockAgent()
+        agent = mock_agent()
         state = 0
         expected_action = 64
         agent._get_action_selector.return_value = DeterministicActionSelector(
@@ -31,8 +35,7 @@ class TestBase(unittest.TestCase):
         # returns a sequence of deterministic action selections and
         # check whether calls to action correctly update the agent's
         # last_action field.
-        MockAgent = create_autospec(Agent)
-        agent = MockAgent()
+        agent = mock_agent()
         agent._get_action_selector.side_effect = action_selectors
         for a in actions:
             chosen_action = Agent.action(agent, state=None)
@@ -50,8 +53,7 @@ class TestBase(unittest.TestCase):
         # Create mock agent, sending it a sequence of states and checking
         # that last_state corresponds correctly to the last sent state after
         # action is called
-        MockAgent = create_autospec(Agent)
-        agent = MockAgent()
+        agent = mock_agent()
         for s in states:
             Agent.action(agent, s)
             self.assertEqual(agent.last_state, s)
@@ -61,8 +63,7 @@ class TestBase(unittest.TestCase):
         """Tests whether calling the reward method resets the last_state
         and last_action fields in agent."""
         state = 1  # arbitrary
-        MockAgent = create_autospec(Agent)
-        agent = MockAgent()
+        agent = mock_agent()
 
         # Call Agent.action and first sanity check that last_* fields are set.
         Agent.action(agent, state=state)
@@ -73,3 +74,25 @@ class TestBase(unittest.TestCase):
         Agent.reward(agent, reward=0)
         self.assertFalse(hasattr(agent, "last_action"))
         self.assertFalse(hasattr(agent, "last_state"))
+
+    def test_reward_cannot_be_called_before_action_ever_called(self):
+        agent = mock_agent()
+        with self.assertRaises(RuntimeError):
+            Agent.reward(agent, reward=0)
+
+    def test_reward_cannot_be_called_twice_in_a_row(self):
+        agent = mock_agent()
+        Agent.action(agent, state=None)
+        Agent.reward(agent, reward=0.)
+        with self.assertRaises(RuntimeError):
+            Agent.reward(agent, reward=0.)  # raises as action not called
+        Agent.action(agent, state=None)
+        Agent.reward(agent, reward=0.)  # OK now that action has been called
+
+    def test_action_cannot_be_called_twice_in_a_row(self):
+        agent = mock_agent()
+        Agent.action(agent, state=None)
+        with self.assertRaises(RuntimeError):
+            Agent.action(agent, state=None)  # raises as reward not called
+        Agent.reward(agent, reward=0.)
+        Agent.action(agent, state=None)  # OK now that reward has been called
