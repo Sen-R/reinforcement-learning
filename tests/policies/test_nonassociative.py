@@ -1,6 +1,6 @@
 import unittest
 from numpy.testing import assert_array_equal, assert_array_almost_equal
-from rl.agents.nonassociative import RewardAveragingEpsilonGreedyAgent
+from rl.policies.nonassociative import RewardAveragingEpsilonGreedyAgent
 from rl.learningrate import SampleAverageLearningRate
 from rl.action_selector import EpsilonGreedyActionSelector
 

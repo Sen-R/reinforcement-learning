@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from rl.agents.random import DiscreteRandomAgent
+from rl.policies.random import DiscreteRandomAgent
 from rl.action_selector import UniformDiscreteActionSelector
 
 
