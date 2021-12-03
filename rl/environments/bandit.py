@@ -3,6 +3,8 @@
 This module provides an implementation of a multi-armed bandit environment.
 """
 
+from typing import Tuple
+from numpy.typing import ArrayLike
 import numpy as np
 from .base import Environment
 
@@ -21,28 +23,39 @@ class MultiArmedBandit(Environment):
       random_state: `None`, `int`, `Generator` etc to initialise RNG.
     """
 
-    def __init__(self, means, sigmas, random_state=None):
-        self.means = means
-        self.sigmas = sigmas
+    def __init__(
+        self,
+        means: ArrayLike,
+        sigmas: ArrayLike,
+        random_state=None,
+    ):
+        self.means = np.array(means)
+        self.sigmas = np.array(sigmas)
         self._rng = np.random.default_rng(random_state)
 
     @property
-    def k(self):
+    def k(self) -> int:
         """Returns the number of levers for this bandit."""
         return len(self.means)
 
-    def act(self, lever):
+    def act(self, lever: int) -> float:
         """Returns reward for pulling lever `lever`."""
         return self._rng.normal(
             loc=self.means[lever], scale=self.sigmas[lever]
         )
 
-    def state(self):
+    def state(self) -> None:
         """Bandit is stateless so always returns `None`."""
         return None
 
 
-def random_bandit(k, *, mean_params, sigma_params, random_state=None):
+def random_bandit(
+    k,
+    *,
+    mean_params: Tuple[float, float],
+    sigma_params: Tuple[float, float],
+    random_state=None
+) -> MultiArmedBandit:
     """Returns a randomly generated `k`-armed bandit instance.
 
     Args:

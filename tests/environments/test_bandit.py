@@ -1,22 +1,22 @@
 import unittest
 import numpy as np
-from numpy.testing import assert_almost_equal
+from numpy.testing import assert_almost_equal, assert_array_equal
 from rl.environments.bandit import MultiArmedBandit, random_bandit
 
 
 class TestBandit(unittest.TestCase):
-    def test_bandit_init(self):
+    def test_bandit_init(self) -> None:
         means = [1.0, 2.0, 3.0]
         sigmas = [1.0, 1.5, 0.5]
         b = MultiArmedBandit(means, sigmas)
-        self.assertEqual(means, b.means)
-        self.assertEqual(sigmas, b.sigmas)
+        assert_array_equal(means, b.means)
+        assert_array_equal(sigmas, b.sigmas)
 
-    def test_bandit_k(self):
+    def test_bandit_k(self) -> None:
         b = MultiArmedBandit([1.0], [1.0])
         self.assertEqual(b.k, len(b.means))
 
-    def test_bandit_act(self):
+    def test_bandit_act(self) -> None:
         b = MultiArmedBandit([0.0, -0.5], [1.0, 2.0], random_state=42)
         actions = [1, 0, 1]
         rewards = [b.act(a) for a in actions]
@@ -25,7 +25,7 @@ class TestBandit(unittest.TestCase):
 
 
 class TestRandomBandit(unittest.TestCase):
-    def test_random_bandit(self):
+    def test_random_bandit(self) -> None:
         k = 3
         mean_loc, mean_scale = 5.0, 0.5
         sigma_loc, sigma_scale = 1.0, 2.0
