@@ -6,7 +6,7 @@ from rl.learningrate import (
 
 
 class TestConstantLearningRate(unittest.TestCase):
-    def test_function_is_correct(self):
+    def test_function_is_correct(self) -> None:
         alpha = 0.01
         lr = ConstantLearningRate(alpha)
         for n in range(10):
@@ -15,7 +15,7 @@ class TestConstantLearningRate(unittest.TestCase):
 
 
 class TestSampleAverageLearningRate(unittest.TestCase):
-    def test_function_is_correct(self):
+    def test_function_is_correct(self) -> None:
         lr = SampleAverageLearningRate()
         for n in range(10):
             with self.subTest(n=n):

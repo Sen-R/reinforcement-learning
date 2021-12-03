@@ -1,7 +1,7 @@
 """Utilities module for rl package."""
 
 
-def soft_update(current, target, alpha):
+def soft_update(current, target, alpha: float):
     """Implements soft updating of `current` towards `target`.
 
     Implements the following soft-update formula:

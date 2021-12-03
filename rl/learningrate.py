@@ -4,10 +4,10 @@
 class ConstantLearningRate:
     """Constant learning rate schedule of `alpha`."""
 
-    def __init__(self, alpha):
+    def __init__(self, alpha: float):
         self.alpha = alpha
 
-    def __call__(self, _):
+    def __call__(self, _) -> float:
         return self.alpha
 
 
@@ -22,5 +22,5 @@ class SampleAverageLearningRate:
     all samples observed.
     """
 
-    def __call__(self, n):
+    def __call__(self, n: int) -> float:
         return 1.0 / (n + 1)

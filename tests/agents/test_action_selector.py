@@ -23,7 +23,7 @@ def binom_stddev(n, p):
 
 
 class TestDeterministicActionSelector(unittest.TestCase):
-    def test_calling_always_return_the_chosen_action(self):
+    def test_calling_always_return_the_chosen_action(self) -> None:
         chosen_action = 0
         n_trials = 10
         s = DeterministicActionSelector(chosen_action)
@@ -32,7 +32,7 @@ class TestDeterministicActionSelector(unittest.TestCase):
 
 
 class TestUniformDiscreteActionSelector(unittest.TestCase):
-    def test_calling_returns_uniformly_sampled_actions(self):
+    def test_calling_returns_uniformly_sampled_actions(self) -> None:
         """Note that this test is statistical and could fail due to
         bad luck (Type I error), or could pass erroneously (Type II error).
 
@@ -65,7 +65,7 @@ class TestUniformDiscreteActionSelector(unittest.TestCase):
 
 
 class TestNoisyActionSelector(unittest.TestCase):
-    def test_desired_or_noise_method(self):
+    def test_desired_or_noise_method(self) -> None:
         """Tests `select_noise_not_preferred` method.
 
         This method should return True a fraction of the time as specified
@@ -96,7 +96,7 @@ class TestNoisyActionSelector(unittest.TestCase):
         self.assertLess(expected_count - margin, counts[1])
         self.assertLess(counts[1], expected_count + margin)
 
-    def test_call(self):
+    def test_call(self) -> None:
         """Tests whether call:
         1. calls `select_noise_not_preferred` to determine how to select
            action.
@@ -126,12 +126,12 @@ class TestNoisyActionSelector(unittest.TestCase):
 
 
 class TestEpsilonGreedyActionSelector(unittest.TestCase):
-    def test_constructs_correct_object(self):
+    def test_constructs_correct_object(self) -> None:
         """This function should create a `NoisyActionSelector` instance
         with correct `epsilon` and other fields. This test checks whether
         that's the case
         """
-        epsilon = (0.2,)
+        epsilon = 0.2
         chosen_action = 1
         n_actions = 3
         random_state = 42

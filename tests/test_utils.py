@@ -3,7 +3,7 @@ from rl.utils import soft_update
 
 
 class TestSoftUpdate(unittest.TestCase):
-    def test_function_is_correct(self):
+    def test_function_is_correct(self) -> None:
         alpha = 0.2
         current = 1.0
         target = 1.5
