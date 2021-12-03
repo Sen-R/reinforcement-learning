@@ -5,7 +5,7 @@ from numpy.testing import (
     assert_array_equal,
     assert_array_less,
 )
-from rl.agents.action_selector import (
+from rl.action_selector import (
     ActionSelector,
     DeterministicActionSelector,
     UniformDiscreteActionSelector,

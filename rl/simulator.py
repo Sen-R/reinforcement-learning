@@ -1,6 +1,6 @@
 """Module implementing simulation engine."""
 from rl.environments.base import Environment
-from rl.agents.base import Agent
+from rl.agent import Agent
 
 
 class History:

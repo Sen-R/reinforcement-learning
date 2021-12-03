@@ -2,7 +2,7 @@ import unittest
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from rl.agents.nonassociative import RewardAveragingEpsilonGreedyAgent
 from rl.learningrate import SampleAverageLearningRate
-from rl.agents.action_selector import EpsilonGreedyActionSelector
+from rl.action_selector import EpsilonGreedyActionSelector
 
 
 class TestRewardAveragingEpsilonGreedyAgent(unittest.TestCase):

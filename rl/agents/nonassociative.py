@@ -6,9 +6,9 @@ nonassociative settings, e.g. multi-armed bandits.
 
 from typing import List, Optional, Sequence
 import numpy as np
-from .base import Agent
+from ..agent import Agent
 from ..custom_types import LearningRateSchedule
-from .action_selector import EpsilonGreedyActionSelector, NoisyActionSelector
+from ..action_selector import EpsilonGreedyActionSelector, NoisyActionSelector
 from ..learningrate import SampleAverageLearningRate
 from ..utils import soft_update
 

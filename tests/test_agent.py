@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import create_autospec
-from rl.agents.base import Agent
-from rl.agents.action_selector import DeterministicActionSelector
+from rl.agent import Agent
+from rl.action_selector import DeterministicActionSelector
 
 
 def mock_agent():

@@ -1,8 +1,8 @@
 """Implementation of agents that take random actions."""
 
 from typing import Final
-from .base import Agent
-from .action_selector import UniformDiscreteActionSelector
+from ..agent import Agent
+from ..action_selector import UniformDiscreteActionSelector
 
 
 class DiscreteRandomAgent(Agent):

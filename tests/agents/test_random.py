@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 from rl.agents.random import DiscreteRandomAgent
-from rl.agents.action_selector import UniformDiscreteActionSelector
+from rl.action_selector import UniformDiscreteActionSelector
 
 
 class TestRandomAgent(unittest.TestCase):
