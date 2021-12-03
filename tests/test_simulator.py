@@ -3,6 +3,7 @@ import unittest
 from rl.environments.base import Environment
 from rl.agents.base import Agent
 from rl.simulator import SingleAgentWaitingSimulator, History
+from typing import Final
 from rl.agents.action_selector import DeterministicActionSelector
 
 mock_tape: List[Tuple] = []
@@ -11,29 +12,31 @@ mock_tape: List[Tuple] = []
 class MockAgent(Agent):
     """Mock agent that logs calls to its methods"""
 
-    def __init__(self, tape):
-        self.tape = tape
-        self.action_to_return = 0
+    action_to_return: Final = 0
 
-    def _get_action_selector(self, state):
+    def __init__(self, tape: List[Tuple]):
+        self.tape = tape
+
+    def _get_action_selector(self, state) -> DeterministicActionSelector:
         self.tape.append(("action", state, self.action_to_return))
         return DeterministicActionSelector(self.action_to_return)
 
     @property
-    def n_actions(self):
+    def n_actions(self) -> int:
         return 1
 
-    def _process_reward(self, last_state, last_action, reward):
+    def _process_reward(self, last_state, last_action, reward) -> None:
         self.tape.append(("reward", reward))
 
 
 class MockEnvironment(Environment):
     """Mock environment that logs calls to its methods."""
 
-    def __init__(self, tape):
+    state_to_return: Final = 1.0
+    reward_to_return: Final = 10.0
+
+    def __init__(self, tape: List[Tuple]):
         self.tape = tape
-        self.state_to_return = 1.0
-        self.reward_to_return = 10.0
 
     def state(self):
         self.tape.append(("state", self.state_to_return))
@@ -44,14 +47,14 @@ class MockEnvironment(Environment):
         return self.reward_to_return
 
 
-def create_environment():
+def create_environment() -> SingleAgentWaitingSimulator:
     agent = MockAgent(mock_tape)
     environment = MockEnvironment(mock_tape)
     return SingleAgentWaitingSimulator(environment, agent)
 
 
 class TestSingleAgentWaitingSimulator(unittest.TestCase):
-    def test_init(self):
+    def test_init(self) -> None:
         sim = create_environment()
         self.assertIsInstance(sim.environment, Environment)
         self.assertIsInstance(sim.agent, Agent)
@@ -60,7 +63,7 @@ class TestSingleAgentWaitingSimulator(unittest.TestCase):
         self.assertEqual(len(sim.history.rewards), 0)
         self.assertEqual(sim.t, 0)
 
-    def test_run_history(self):
+    def test_run_history(self) -> None:
         n_steps = 5
         sim = create_environment()
         sim.run(n_steps)
@@ -69,32 +72,34 @@ class TestSingleAgentWaitingSimulator(unittest.TestCase):
         self.assertEqual(len(sim.history.rewards), n_steps)
         self.assertEqual(sim.t, n_steps)
 
-    def test_run_env_agent_interactions_are_correct(self):
+    def test_run_env_agent_interactions_are_correct(self) -> None:
         n_steps = 1
         mock_tape.clear()
         sim = create_environment()
-        agent, environment = sim.agent, sim.environment
+        s = MockEnvironment.state_to_return
+        a = MockAgent.action_to_return
+        r = MockEnvironment.reward_to_return
         sim.run(n_steps)
         expected_tape = [
-            ("state", environment.state_to_return),
-            ("action", environment.state_to_return, agent.action_to_return),
-            ("act", agent.action_to_return, environment.reward_to_return),
-            ("reward", environment.reward_to_return),
+            ("state", s),
+            ("action", s, a),
+            ("act", a, r),
+            ("reward", r),
         ]
         self.assertEqual(mock_tape, expected_tape)
-        self.assertEqual(sim.history.states[0], environment.state_to_return)
-        self.assertEqual(sim.history.actions[0], agent.action_to_return)
-        self.assertEqual(sim.history.rewards[0], environment.reward_to_return)
+        self.assertEqual(sim.history.states[0], s)
+        self.assertEqual(sim.history.actions[0], a)
+        self.assertEqual(sim.history.rewards[0], r)
 
 
 class TestHistory(unittest.TestCase):
-    def test_init(self):
+    def test_init(self) -> None:
         h = History()
         self.assertEqual(len(h.states), 0)
         self.assertEqual(len(h.actions), 0)
         self.assertEqual(len(h.rewards), 0)
 
-    def test_add(self):
+    def test_add(self) -> None:
         h = History()
         s, a, r = [1.0], 3, 0.5
         h.add(s, a, r)

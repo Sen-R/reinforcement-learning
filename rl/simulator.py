@@ -1,4 +1,6 @@
 """Module implementing simulation engine."""
+from rl.environments.base import Environment
+from rl.agents.base import Agent
 
 
 class History:
@@ -23,17 +25,17 @@ class SingleAgentWaitingSimulator:
     where the environment waits for the agent to decide on an action.
     """
 
-    def __init__(self, environment, agent):
+    def __init__(self, environment: Environment, agent: Agent):
         self.environment = environment
         self.agent = agent
         self.history = History()
 
     @property
-    def t(self):
+    def t(self) -> int:
         """Returns the current time step."""
         return len(self.history.states)
 
-    def run(self, n_steps):
+    def run(self, n_steps: int):
         """Runs the simulation for `n_steps` time steps.
 
         The outcome of the simulation is recorded in `self.history`.
