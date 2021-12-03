@@ -1,14 +1,14 @@
 """Module defines base agent class."""
 
 from abc import ABC, abstractmethod
-from typing import final
+from typing import final, Any, Callable
 
 
 class Agent(ABC):
     """Base class for agents."""
 
     @final
-    def action(self, state):
+    def action(self, state) -> None:
         """Requests desired action from the agent given state signal.
 
         By default it calls `_get_action_selector` to retrieve an
@@ -35,7 +35,7 @@ class Agent(ABC):
         return chosen_action
 
     @final
-    def reward(self, reward):
+    def reward(self, reward) -> None:
         """Sends reward signal `reward` to the agent."""
         # Check that the agent is in right state to process reward signal,
         # i.e. it has selected an action already and hasn't yet received
@@ -55,16 +55,16 @@ class Agent(ABC):
 
     @property
     @abstractmethod
-    def n_actions(self):
+    def n_actions(self) -> int:
         """Returns size of (discrete) action space known to agent."""
         pass
 
     @abstractmethod
-    def _get_action_selector(self, state):
+    def _get_action_selector(self, state) -> Callable[[], Any]:
         """Returns (potentially stochastic) `ActionSelector` given state."""
         pass
 
     @abstractmethod
-    def _process_reward(self, last_state, last_action, reward):
+    def _process_reward(self, last_state, last_action, reward) -> None:
         """Function to be implemented for agent to process received reward."""
         pass

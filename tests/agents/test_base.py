@@ -10,7 +10,7 @@ def mock_agent():
 
 
 class TestBase(unittest.TestCase):
-    def test_action_method(self):
+    def test_action_method(self) -> None:
         """Tests whether `action` method correctly calls `_get_action_selector`
         to determine which action to return"""
         agent = mock_agent()
@@ -23,7 +23,7 @@ class TestBase(unittest.TestCase):
         self.assertEqual(chosen_action, expected_action)
         agent._get_action_selector.assert_called_with(state)
 
-    def test_last_action_corresponds_to_chosen_action(self):
+    def test_last_action_corresponds_to_chosen_action(self) -> None:
         """Tests whether agent.last_action matches the action last provided
         by the agent."""
         # Parameters
@@ -43,7 +43,7 @@ class TestBase(unittest.TestCase):
             self.assertEqual(agent.last_action, chosen_action)
             Agent.reward(agent, 0)  # arbitrary reward to advance loop
 
-    def test_last_state_corresponds_to_last_received_state(self):
+    def test_last_state_corresponds_to_last_received_state(self) -> None:
         """Tests whether agent.last_state corresponds to the last state
         received when action method was called."""
         # Parameters
@@ -59,7 +59,7 @@ class TestBase(unittest.TestCase):
             self.assertEqual(agent.last_state, s)
             Agent.reward(agent, 0)  # arbitrary reward
 
-    def test_reward_resets_last_state_and_last_action(self):
+    def test_reward_resets_last_state_and_last_action(self) -> None:
         """Tests whether calling the reward method resets the last_state
         and last_action fields in agent."""
         state = 1  # arbitrary
@@ -75,12 +75,12 @@ class TestBase(unittest.TestCase):
         self.assertFalse(hasattr(agent, "last_action"))
         self.assertFalse(hasattr(agent, "last_state"))
 
-    def test_reward_cannot_be_called_before_action_ever_called(self):
+    def test_reward_cannot_be_called_before_action_ever_called(self) -> None:
         agent = mock_agent()
         with self.assertRaises(RuntimeError):
             Agent.reward(agent, reward=0)
 
-    def test_reward_cannot_be_called_twice_in_a_row(self):
+    def test_reward_cannot_be_called_twice_in_a_row(self) -> None:
         agent = mock_agent()
         Agent.action(agent, state=None)
         Agent.reward(agent, reward=0.)
@@ -89,7 +89,7 @@ class TestBase(unittest.TestCase):
         Agent.action(agent, state=None)
         Agent.reward(agent, reward=0.)  # OK now that action has been called
 
-    def test_action_cannot_be_called_twice_in_a_row(self):
+    def test_action_cannot_be_called_twice_in_a_row(self) -> None:
         agent = mock_agent()
         Agent.action(agent, state=None)
         with self.assertRaises(RuntimeError):

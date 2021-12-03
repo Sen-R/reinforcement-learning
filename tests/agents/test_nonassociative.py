@@ -5,7 +5,7 @@ from rl.learningrate import SampleAverageLearningRate
 
 
 class TestRewardAveragingEpsilonGreedyAgent(unittest.TestCase):
-    def test_attributes(self):
+    def test_attributes(self) -> None:
         """Tests whether initial instance attributes are set correctly upon
         object initialisation."""
         # Parameters
@@ -19,20 +19,20 @@ class TestRewardAveragingEpsilonGreedyAgent(unittest.TestCase):
         self.assertEqual(agent.epsilon, 0.0)  # default epsilon is zero
         self.assertIsInstance(agent.alpha, SampleAverageLearningRate)
 
-    def test_setting_initial_action_values(self):
+    def test_setting_initial_action_values(self) -> None:
         """Tests whether can correctly set initial action values to something
         other than the default value."""
         # Parameters
         k = 3  # arbitrary
-        init_q = 5.0  # set to something other than zero
+        init_q = [5.0, 2.0, 3.0]  # set to something other than zero
 
         # Test
         agent = RewardAveragingEpsilonGreedyAgent(
             k, initial_action_values=init_q
         )
-        assert_array_equal(agent.Q, [init_q] * k)
+        assert_array_equal(agent.Q, init_q)
 
-    def test_setting_epsilon(self):
+    def test_setting_epsilon(self) -> None:
         # Parameters
         k, eps = 3, 0.5
 
@@ -40,7 +40,7 @@ class TestRewardAveragingEpsilonGreedyAgent(unittest.TestCase):
         agent = RewardAveragingEpsilonGreedyAgent(k, epsilon=eps)
         self.assertEqual(agent.epsilon, eps)
 
-    def test_returns_epsilon_greedy_action(self):
+    def test_returns_epsilon_greedy_action(self) -> None:
         """Tests whether calls to `_get_action_selector` yields the correct
         epsilon greedy action selector."""
         # Parameters
@@ -61,7 +61,7 @@ class TestRewardAveragingEpsilonGreedyAgent(unittest.TestCase):
         self.assertEqual(action_selector.preferred.chosen_action, a_opt)
         self.assertEqual(action_selector.noise.n_actions, k)
 
-    def test_reward_updates_observation_counts(self):
+    def test_reward_updates_observation_counts(self) -> None:
         """Tests whether calling reward results in observation counts
         being correctly updated."""
         # Parameters
@@ -85,7 +85,7 @@ class TestRewardAveragingEpsilonGreedyAgent(unittest.TestCase):
         agent.reward(reward)
         assert_array_equal(agent.action_counts, expected_counts_after_reward)
 
-    def test_reward_updates_action_values(self):
+    def test_reward_updates_action_values(self) -> None:
         """Tests whether calling reward results in action values being
         being currectly updated (using soft updates)."""
         # Parameters
