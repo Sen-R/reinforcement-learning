@@ -15,7 +15,44 @@ class TestBandit:
         b = MultiArmedBandit([1.0], [1.0])
         assert b.k == len(b.means)
 
+    def test_bandit_act_functional(self) -> None:
+        """Functional test of bandit.act.
+
+        Note these tests are statistical, and may fail if the random seed
+        is changed / RNG implementation is changed. Try a different seed
+        or adjust the margin parameters if you are confident the implementation
+        is correct.
+        """
+        # Set up a bandit with very different lever distributions
+        means = [-100.0, 100.0]
+        sigmas = [1.0, 2.0]
+        bandit = MultiArmedBandit(means, sigmas, random_state=32)
+
+        # Choose one of the levers, draw 100 samples and check if mean and
+        # std dev are as expected
+        chosen_lever = 1
+        n_samples = 100
+        rewards = np.array(
+            [bandit.act(chosen_lever) for _ in range(n_samples)]
+        )
+        z_scores = (rewards - 100.0) / 2.0  # using mean and sigma for lever 1
+
+        # Mean of z_scores should be normally distributed with zero e.v. and
+        # 1/n_samples variance
+        mean_margin = 0.5
+        assert np.abs(np.mean(z_scores)) < mean_margin / np.sqrt(n_samples)
+
+        # Sum of z_scores ** 2 should be chi2 distributed with dof n_samples.
+        # For large dof this is approximately N(n_samples, 2*n_samples)
+        chi2_margin = 1.0
+        assert np.abs(
+            np.sum(z_scores ** 2) - n_samples
+        ) < chi2_margin * np.sqrt(2.0 * n_samples)
+
     def test_bandit_act(self) -> None:
+        """Test assumes implementation uses np.random.default_rng. Kept here
+        for now as a regression test, but is a candidate for removal (suggest
+        replacing with a unit test mocking the RNG."""
         b = MultiArmedBandit([0.0, -0.5], [1.0, 2.0], random_state=42)
         actions = [1, 0, 1]
         rewards = [b.act(a) for a in actions]
