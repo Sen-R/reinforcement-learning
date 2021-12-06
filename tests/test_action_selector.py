@@ -1,4 +1,3 @@
-import unittest
 from unittest.mock import Mock, patch
 import numpy as np
 from numpy.testing import (
@@ -21,16 +20,16 @@ def binom_stddev(n, p):
     return np.sqrt(n * p * (1.0 - p))
 
 
-class TestDeterministicActionSelector(unittest.TestCase):
+class TestDeterministicActionSelector:
     def test_calling_always_return_the_chosen_action(self) -> None:
         chosen_action = 0
         n_trials = 10
         s = DeterministicActionSelector(chosen_action)
         for _ in range(n_trials):
-            self.assertEqual(s(), chosen_action)
+            assert s() == chosen_action
 
 
-class TestUniformDiscreteActionSelector(unittest.TestCase):
+class TestUniformDiscreteActionSelector:
     def test_calling_returns_uniformly_sampled_actions(self) -> None:
         """Note that this test is statistical and could fail due to
         bad luck (Type I error), or could pass erroneously (Type II error).
@@ -63,7 +62,7 @@ class TestUniformDiscreteActionSelector(unittest.TestCase):
         assert_array_less(action_counts, expected_counts + margin)
 
 
-class TestNoisyActionSelector(unittest.TestCase):
+class TestNoisyActionSelector:
     def test_desired_or_noise_method(self) -> None:
         """Tests `select_noise_not_preferred` method.
 
@@ -92,8 +91,8 @@ class TestNoisyActionSelector(unittest.TestCase):
         samples = [s.select_noise_not_preferred() for _ in range(n_trials)]
         values, counts = np.unique(samples, return_counts=True)
         assert_array_equal(values, [False, True])
-        self.assertLess(expected_count - margin, counts[1])
-        self.assertLess(counts[1], expected_count + margin)
+        assert expected_count - margin < counts[1]
+        assert counts[1] < expected_count + margin
 
     def test_call(self) -> None:
         """Tests whether call:

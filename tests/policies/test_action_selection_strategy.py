@@ -1,4 +1,3 @@
-import unittest
 from unittest.mock import patch
 import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
@@ -10,7 +9,7 @@ from rl.action_selector import (
 )
 
 
-class TestEpsilonGreedy(unittest.TestCase):
+class TestEpsilonGreedy:
     def test_constructs_correct_object(self) -> None:
         """This selection strategy should create a `NoisyActionSelector`
         instance with correct `epsilon` and other fields. This test checks
@@ -29,11 +28,11 @@ class TestEpsilonGreedy(unittest.TestCase):
         # corresponding to epsilon greedy action selection.
         s = strategy(action_values)
         assert isinstance(s, NoisyActionSelector)
-        self.assertEqual(s.epsilon, epsilon)
+        assert s.epsilon == epsilon
         assert isinstance(s.preferred, DeterministicActionSelector)
         assert isinstance(s.noise, UniformDiscreteActionSelector)
-        self.assertEqual(s.preferred.chosen_action, greedy_action)
-        self.assertEqual(s.noise.n_actions, n_actions)
+        assert s.preferred.chosen_action == greedy_action
+        assert s.noise.n_actions == n_actions
 
     def test_rng_sharing(self):
         """Checks that rng is correctly configured and also shared (not
@@ -58,15 +57,15 @@ class TestEpsilonGreedy(unittest.TestCase):
 
     def test_default_epsilon_is_zero(self):
         strategy = EpsilonGreedy()
-        self.assertEqual(strategy.epsilon, 0.0)
+        assert strategy.epsilon == 0.0
 
 
-class TestUCB(unittest.TestCase):
+class TestUCB:
     def test_defaults(self):
         """Tests default arg in __init__."""
         expected_eps = 1e-8
         strategy = UCB(c=2)
-        self.assertEqual(strategy._eps, expected_eps)
+        assert strategy._eps == expected_eps
 
     def test_ucb_method(self):
         """Tests that the UCB method returns `Q(a) + c * sqrt(log(t) / N(a))`
@@ -96,4 +95,4 @@ class TestUCB(unittest.TestCase):
             action_selector = strategy("fake_Q", "fake_N")
             mock_ucb.assert_called_with("fake_Q", "fake_N")
             assert isinstance(action_selector, DeterministicActionSelector)
-            self.assertEqual(action_selector.chosen_action, chosen_action)
+            assert action_selector.chosen_action == chosen_action

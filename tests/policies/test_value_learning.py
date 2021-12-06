@@ -1,4 +1,3 @@
-import unittest
 from unittest.mock import Mock
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from rl.policies.value_learning import RewardAveragingPolicy
@@ -6,7 +5,7 @@ from rl.policies.action_selection_strategy import EpsilonGreedy
 from rl.learningrate import SampleAverageLearningRate
 
 
-class TestRewardAveragingPolicy(unittest.TestCase):
+class TestRewardAveragingPolicy:
     def test_attributes(self) -> None:
         """Tests whether initial instance attributes are set correctly upon
         object initialisation."""
@@ -20,7 +19,7 @@ class TestRewardAveragingPolicy(unittest.TestCase):
         # Test
         assert_array_equal(policy.Q, [0.0] * k)  # Q initialised to zero
         assert_array_equal(policy.action_counts, [0] * k)  # counts are zero
-        self.assertIsInstance(policy.alpha, SampleAverageLearningRate)
+        assert isinstance(policy.alpha, SampleAverageLearningRate)
 
     def test_action_selection_strategy_called(self) -> None:
         """Tests whether the policy's __call__ method correctly calls in

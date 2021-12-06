@@ -1,22 +1,20 @@
-import unittest
+import pytest
 from rl.learningrate import (
     ConstantLearningRate,
     SampleAverageLearningRate,
 )
 
 
-class TestConstantLearningRate(unittest.TestCase):
-    def test_function_is_correct(self) -> None:
+class TestConstantLearningRate:
+    @pytest.mark.parametrize("n", [0, 1, 10])
+    def test_function_is_correct(self, n) -> None:
         alpha = 0.01
         lr = ConstantLearningRate(alpha)
-        for n in range(10):
-            with self.subTest(n=n):
-                self.assertEqual(lr(n), alpha)
+        assert lr(n) == alpha
 
 
-class TestSampleAverageLearningRate(unittest.TestCase):
-    def test_function_is_correct(self) -> None:
+class TestSampleAverageLearningRate:
+    @pytest.mark.parametrize("n", [0, 1, 10])
+    def test_function_is_correct(self, n) -> None:
         lr = SampleAverageLearningRate()
-        for n in range(10):
-            with self.subTest(n=n):
-                self.assertEqual(lr(n), 1.0 / (n + 1))
+        assert lr(n) == 1.0 / (n + 1)
