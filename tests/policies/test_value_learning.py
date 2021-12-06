@@ -1,23 +1,42 @@
 import unittest
+from unittest.mock import Mock
 from numpy.testing import assert_array_equal, assert_array_almost_equal
-from rl.policies.nonassociative import RewardAveragingEpsilonGreedyPolicy
+from rl.policies.value_learning import RewardAveragingPolicy
+from rl.policies.action_selection_strategy import EpsilonGreedy
 from rl.learningrate import SampleAverageLearningRate
-from rl.action_selector import EpsilonGreedyActionSelector
 
 
-class TestRewardAveragingEpsilonGreedyPolicy(unittest.TestCase):
+class TestRewardAveragingPolicy(unittest.TestCase):
     def test_attributes(self) -> None:
         """Tests whether initial instance attributes are set correctly upon
         object initialisation."""
         # Parameters
         k = 3  # arbitrary
-        policy = RewardAveragingEpsilonGreedyPolicy(k)
+        policy = RewardAveragingPolicy(
+            n_actions=k,
+            action_selection_strategy=EpsilonGreedy(),
+        )
 
         # Test
         assert_array_equal(policy.Q, [0.0] * k)  # Q initialised to zero
         assert_array_equal(policy.action_counts, [0] * k)  # counts are zero
-        self.assertEqual(policy.epsilon, 0.0)  # default epsilon is zero
         self.assertIsInstance(policy.alpha, SampleAverageLearningRate)
+
+    def test_action_selection_strategy_called(self) -> None:
+        """Tests whether the policy's __call__ method correctly calls in
+        turn the innder action selection strategy to return an action
+        selector."""
+        k = 3  # arbitrary
+        init_Q = [1.0, 2.0, 3.0]  # arbitrary
+        mock_strategy = Mock()
+        policy = RewardAveragingPolicy(
+            n_actions=k,
+            action_selection_strategy=mock_strategy,
+            initial_action_values=init_Q,
+        )
+        fake_state = 0  # arbitrary
+        policy(fake_state)  # should have called strategy
+        mock_strategy.assert_called_with(policy.Q, policy.action_counts)
 
     def test_setting_initial_action_values(self) -> None:
         """Tests whether can correctly set initial action values to something
@@ -27,40 +46,12 @@ class TestRewardAveragingEpsilonGreedyPolicy(unittest.TestCase):
         init_q = [5.0, 2.0, 3.0]  # set to something other than zero
 
         # Test
-        policy = RewardAveragingEpsilonGreedyPolicy(
-            k, initial_action_values=init_q
+        policy = RewardAveragingPolicy(
+            k,
+            action_selection_strategy=EpsilonGreedy(),
+            initial_action_values=init_q,
         )
         assert_array_equal(policy.Q, init_q)
-
-    def test_setting_epsilon(self) -> None:
-        # Parameters
-        k, eps = 3, 0.5
-
-        # Test
-        policy = RewardAveragingEpsilonGreedyPolicy(k, epsilon=eps)
-        self.assertEqual(policy.epsilon, eps)
-
-    def test_returns_epsilon_greedy_action(self) -> None:
-        """Tests whether calls to `_get_action_selector` yields the correct
-        epsilon greedy action selector."""
-        # Parameters
-        Q = [0.0, 1.0, 0.0]  # Chosen so that action 1 is best action
-        epsilon = 0.2  # arbitrary
-        a_opt = 1  # i.e. argmax(Q)
-        k = 3  # i.e. len(Q)
-
-        # Test:
-        # Create an policy, setting initial action values to Q defined above,
-        # then test whether _get_action_selector yields a correctly configured
-        # epsilon-greedy action selector
-        policy = RewardAveragingEpsilonGreedyPolicy(
-            k, epsilon=epsilon, initial_action_values=Q
-        )
-        action_selector = policy()
-        assert isinstance(action_selector, EpsilonGreedyActionSelector)
-        self.assertEqual(action_selector.epsilon, epsilon)
-        self.assertEqual(action_selector.preferred.chosen_action, a_opt)
-        self.assertEqual(action_selector.noise.n_actions, k)
 
     def test_reward_updates_observation_counts(self) -> None:
         """Tests whether calling reward results in observation counts
@@ -76,7 +67,9 @@ class TestRewardAveragingEpsilonGreedyPolicy(unittest.TestCase):
         # Construct policy, and send state-action-reward update. Check
         # action counts are as expected (given that a single experience for
         # action 1 is all that has been provided).
-        policy = RewardAveragingEpsilonGreedyPolicy(k)
+        policy = RewardAveragingPolicy(
+            n_actions=k, action_selection_strategy=EpsilonGreedy()
+        )
         policy.update(state, action, reward)
         assert_array_equal(policy.action_counts, expected_counts_after_reward)
 
@@ -101,8 +94,11 @@ class TestRewardAveragingEpsilonGreedyPolicy(unittest.TestCase):
         # above. Let the policy take two state-action-reward updates, feeding
         # rewards defined above and check that Q values update as expected
         # (expected results defined above).
-        policy = RewardAveragingEpsilonGreedyPolicy(
-            k, initial_action_values=Q, learning_rate_schedule=lr
+        policy = RewardAveragingPolicy(
+            k,
+            action_selection_strategy=EpsilonGreedy(),
+            initial_action_values=Q,
+            learning_rate_schedule=lr,
         )
         for reward, Q_after_update in zip(rewards, expected_Qs_after_updates):
             policy.update(state, action, reward)

@@ -10,7 +10,6 @@ from rl.action_selector import (
     DeterministicActionSelector,
     UniformDiscreteActionSelector,
     NoisyActionSelector,
-    EpsilonGreedyActionSelector,
 )
 
 
@@ -123,33 +122,3 @@ class TestNoisyActionSelector(unittest.TestCase):
             s()
             preferred.assert_not_called()
             noise.assert_called_with()
-
-
-class TestEpsilonGreedyActionSelector(unittest.TestCase):
-    def test_constructs_correct_object(self) -> None:
-        """This function should create a `NoisyActionSelector` instance
-        with correct `epsilon` and other fields. This test checks whether
-        that's the case
-        """
-        epsilon = 0.2
-        chosen_action = 1
-        n_actions = 3
-        random_state = 42
-        s = EpsilonGreedyActionSelector(
-            epsilon, chosen_action, n_actions, random_state=random_state
-        )
-        self.assertEqual(s.epsilon, epsilon)
-        self.assertIsInstance(s.preferred, DeterministicActionSelector)
-        self.assertIsInstance(s.noise, UniformDiscreteActionSelector)
-        self.assertEqual(s.preferred.chosen_action, chosen_action)
-        self.assertEqual(s.noise.n_actions, n_actions)
-
-        # Checks that rng is correctly configured and also shared (not
-        # duplicated) across noise selection and uniform action selection.
-        benchmark_rng = np.random.default_rng(random_state)
-        assert_array_equal(
-            s._rng.random(size=10), benchmark_rng.random(size=10)
-        )
-        assert_array_equal(
-            s.noise._rng.random(size=10), benchmark_rng.random(size=10)
-        )
