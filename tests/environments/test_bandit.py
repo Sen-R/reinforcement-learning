@@ -59,6 +59,13 @@ class TestBandit:
         expected = [0.1094341595, -1.0399841062, 1.000902391]
         assert_almost_equal(rewards, expected)
 
+    def test_optimal_action_returns_optimal_lever_idx(self) -> None:
+        means = [0.0, 2.0, 1.0]
+        sigmas = [10.0, 1.0, 0.5]  # unimportant
+        optimal_lever = 1  # argmax(means)
+        b = MultiArmedBandit(means, sigmas)
+        assert b.optimal_action() == optimal_lever
+
 
 class TestRandomBandit:
     def test_random_bandit(self) -> None:

@@ -48,6 +48,9 @@ class MultiArmedBandit(Environment):
         """Bandit is stateless so always returns `None`."""
         return None
 
+    def optimal_action(self) -> int:
+        return int(np.argmax(self.means))
+
 
 def random_bandit(
     k,
