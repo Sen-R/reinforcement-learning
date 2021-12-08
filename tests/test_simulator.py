@@ -128,3 +128,16 @@ class TestHistory:
         assert h.states == [s]
         assert h.actions == [a]
         assert h.rewards == [r]
+
+    def test_to_dict(self) -> None:
+        h = History()
+        s, a, r = [1.0], 3, 0.5
+        h.add(s, a, r)
+        expected_dict = {"states": [s], "actions": [a], "rewards": [r]}
+        actual_dict = h.to_dict()
+        assert actual_dict == expected_dict
+
+        # Also check that data has been copied to create the dict
+        assert h.states is not actual_dict["states"]
+        assert h.actions is not actual_dict["actions"]
+        assert h.rewards is not actual_dict["rewards"]

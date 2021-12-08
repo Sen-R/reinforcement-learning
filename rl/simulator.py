@@ -1,4 +1,5 @@
 """Module implementing simulation engine."""
+from typing import Dict, List
 from rl.environments.base import Environment
 from rl.agent import Agent
 
@@ -16,6 +17,14 @@ class History:
         self.states.append(state)
         self.actions.append(action)
         self.rewards.append(reward)
+
+    def to_dict(self) -> Dict[str, List]:
+        """Exports history as python dictionary."""
+        return {
+            "states": self.states.copy(),
+            "actions": self.actions.copy(),
+            "rewards": self.rewards.copy(),
+        }
 
 
 class SingleAgentWaitingSimulator:
