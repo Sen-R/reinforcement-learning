@@ -35,8 +35,8 @@ class MockEnvironment(Environment):
     def __init__(self, tape: List[Tuple]):
         self.tape = tape
 
-    def state(self) -> float:
-        self.tape.append(("state", self.state_to_return))
+    def observe(self) -> float:
+        self.tape.append(("observe", self.state_to_return))
         return self.state_to_return
 
     def act(self, a) -> float:
@@ -81,7 +81,7 @@ class TestSingleAgentWaitingSimulator:
         r = MockEnvironment.reward_to_return
         sim.run(n_steps)
         expected_tape = [
-            ("state", s),
+            ("observe", s),
             ("action", s, a),
             ("act", a, r),
             ("reward", r),

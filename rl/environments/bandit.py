@@ -44,7 +44,7 @@ class MultiArmedBandit(Environment):
             loc=self.means[lever], scale=self.sigmas[lever]
         )
 
-    def state(self) -> None:
+    def observe(self) -> None:
         """Bandit is stateless so always returns `None`."""
         return None
 

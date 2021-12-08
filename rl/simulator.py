@@ -41,7 +41,7 @@ class SingleAgentWaitingSimulator:
         The outcome of the simulation is recorded in `self.history`.
         """
         for _ in range(n_steps):
-            state = self.environment.state()
+            state = self.environment.observe()
             action = self.agent.action(state)
             reward = self.environment.act(action)
             self.agent.reward(reward)

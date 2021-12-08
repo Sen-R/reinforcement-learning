@@ -19,7 +19,7 @@ class Environment(ABC):
         pass
 
     @abstractmethod
-    def state(self):
+    def observe(self):
         """Returns environment's state signal from agent's perspective."""
         pass
 
