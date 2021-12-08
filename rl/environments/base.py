@@ -22,3 +22,8 @@ class Environment(ABC):
     def state(self):
         """Returns environment's state signal from agent's perspective."""
         pass
+
+    @abstractmethod
+    def reset(self, random_state=None) -> None:
+        """Resets current environment (e.g. to avoid making from scratch)."""
+        pass

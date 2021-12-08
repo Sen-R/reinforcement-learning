@@ -35,13 +35,16 @@ class MockEnvironment(Environment):
     def __init__(self, tape: List[Tuple]):
         self.tape = tape
 
-    def state(self):
+    def state(self) -> float:
         self.tape.append(("state", self.state_to_return))
         return self.state_to_return
 
-    def act(self, a):
+    def act(self, a) -> float:
         self.tape.append(("act", a, self.reward_to_return))
         return self.reward_to_return
+
+    def reset(self, random_state=None) -> None:
+        self.tape.append(("reset",))
 
 
 def create_environment() -> SingleAgentWaitingSimulator:

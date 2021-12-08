@@ -31,7 +31,7 @@ class MultiArmedBandit(Environment):
     ):
         self.means = np.array(means)
         self.sigmas = np.array(sigmas)
-        self._rng = np.random.default_rng(random_state)
+        self.reset(random_state)
 
     @property
     def k(self) -> int:
@@ -50,6 +50,9 @@ class MultiArmedBandit(Environment):
 
     def optimal_action(self) -> int:
         return int(np.argmax(self.means))
+
+    def reset(self, random_state=None) -> None:
+        self._rng = np.random.default_rng(random_state)
 
 
 def random_bandit(
