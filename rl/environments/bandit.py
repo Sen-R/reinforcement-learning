@@ -54,6 +54,11 @@ class MultiArmedBandit(Environment):
     def reset(self, random_state=None) -> None:
         self._rng = np.random.default_rng(random_state)
 
+    @property
+    def done(self) -> bool:
+        """Non episodic environment, so always returns False."""
+        return False
+
 
 def random_bandit(
     k,

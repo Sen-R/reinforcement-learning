@@ -1,5 +1,5 @@
 from typing import List, Tuple, Final
-from .fakes import FakePolicy
+from .fakes import FakePolicy, FakeEnvironment, fake_agent
 from rl.environments.base import Environment
 from rl.agent import Agent
 from rl.simulator import SingleAgentWaitingSimulator, History
@@ -46,6 +46,11 @@ class MockEnvironment(Environment):
     def reset(self, random_state=None) -> None:
         self.tape.append(("reset",))
 
+    @property
+    def done(self) -> bool:
+        self.tape.append(("done",))
+        return False
+
 
 def create_environment() -> SingleAgentWaitingSimulator:
     agent = MockAgent(mock_tape)
@@ -85,11 +90,28 @@ class TestSingleAgentWaitingSimulator:
             ("action", s, a),
             ("act", a, r),
             ("reward", r),
+            ("done",),
         ]
         assert mock_tape == expected_tape
         assert sim.history.states[0] == s
         assert sim.history.actions[0] == a
         assert sim.history.rewards[0] == r
+
+    def test_breaks_when_done(self) -> None:
+        """Tests whether simulation loop breaks when environment says
+        terminal state has been reached."""
+        # Create an environment with episode length 2 and a fake agent
+        # to interact with it.
+        episode_length = 2
+        environment = FakeEnvironment(episode_length=episode_length)
+        agent = fake_agent()
+        sim = SingleAgentWaitingSimulator(environment, agent)
+
+        # Run for many more timesteps than the episode length and check
+        # that simulation actually stopped after 2 steps
+        run_length = 102  # much greater than epsiode length
+        sim.run(run_length)
+        assert sim.t == episode_length
 
 
 class TestHistory:

@@ -46,3 +46,5 @@ class SingleAgentWaitingSimulator:
             reward = self.environment.act(action)
             self.agent.reward(reward)
             self.history.add(state, action, reward)
+            if self.environment.done:
+                break

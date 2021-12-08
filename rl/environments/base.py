@@ -27,3 +27,9 @@ class Environment(ABC):
     def reset(self, random_state=None) -> None:
         """Resets current environment (e.g. to avoid making from scratch)."""
         pass
+
+    @property
+    @abstractmethod
+    def done(self) -> bool:
+        """Whether terminal state has been reached."""
+        pass
