@@ -21,8 +21,9 @@ class Agent:
         about rewards).
     """
 
-    def __init__(self, policy: Policy):
+    def __init__(self, policy: Policy, training_mode: bool = True):
         self.policy = policy
+        self.training_mode = training_mode
 
     def action(self, state) -> Any:
         """Requests desired action from the agent given state signal.
@@ -60,8 +61,9 @@ class Agent:
                 "process any reward"
             )
 
-        # Update the policy
-        self.policy.update(self.last_state, self.last_action, reward)
+        # Update the policy if in training mode
+        if self.training_mode:
+            self.policy.update(self.last_state, self.last_action, reward)
 
         # Clear last state and action fields to indicate agent is ready
         # to determine its next action.

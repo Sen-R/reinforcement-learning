@@ -1,11 +1,11 @@
 import pytest
-from unittest.mock import create_autospec
+from unittest.mock import create_autospec, patch
 from .fakes import fake_agent, FakePolicy
 from rl.agent import Agent
 from rl.action_selector import DeterministicActionSelector
 
 
-class TestBase:
+class TestAgent:
     def test_action_method(self) -> None:
         """Tests whether `action` method correctly calls the policy
         to determine which action to return and returns that action"""
@@ -17,6 +17,32 @@ class TestBase:
         chosen_action = agent.action(state)
         assert chosen_action == expected_action
         policy.assert_called_with(state)
+
+    def test_default_training_mode_is_true(self) -> None:
+        policy = FakePolicy(0)
+        agent = Agent(policy)
+        assert agent.training_mode
+
+    def test_reward_method(self) -> None:
+        """Tests whether reward method correctly calls the policy's update
+        method depending on whether or not agent's training_mode attribute
+        is set to True."""
+        policy = FakePolicy(0)
+        with patch.object(policy, "update", autospec=True) as mock_update:
+            agent = Agent(policy)
+            state = 0
+            reward = 0.0
+            # First check reward call with training_mode set to True
+            action = agent.action(state=state)
+            agent.reward(reward=reward)
+            mock_update.assert_called_with(state, action, reward)
+
+            # Then check the call with training_mode set to False
+            mock_update.reset_mock()
+            agent.training_mode = False
+            action = agent.action(state=state)
+            agent.reward(reward=reward)
+            mock_update.assert_not_called()
 
     def test_last_action_corresponds_to_chosen_action(self) -> None:
         """Tests whether agent.last_action matches the action last provided
