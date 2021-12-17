@@ -76,7 +76,7 @@ class TestUCB:
         action_counts = [3, 5, 0]
         action_values = [1.0, 2.5, 0.0]
         expected_ucbs = np.array(
-            [2.66510922e00, 3.78978806e00, 2.88405377e04]
+            [2.71161700e00, 3.82581283e00, 2.96460761e04]
         )  # manual calculation of above formula
 
         strategy = UCB(c=c, eps=eps)

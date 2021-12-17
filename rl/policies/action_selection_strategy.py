@@ -57,8 +57,11 @@ class UCB(ActionSelectionStrategy):
     """Upper confidence bound action selection strategy.
 
     As defined in Sutton & Barto equation 2.10. However we floor action
-    counts at `eps` to avoid divide-by-zero. `t` is inferred by summing
-    the action counts vector.
+    counts at `eps` to avoid divide-by-zero.
+
+    `t` is inferred by summing the action counts vector and adding 1.
+    (Because `t` refers to the time step at which action values are being
+    estimated, i.e. the next time step since the last observation).
 
     Args:
       c: confidence parameter
@@ -82,6 +85,6 @@ class UCB(ActionSelectionStrategy):
         action_values: List[float],
         action_counts: List[int],
     ) -> ArrayLike:
-        log_t = np.log(np.sum(action_counts))
+        log_t = np.log(np.sum(action_counts) + 1)
         floored_counts = np.maximum(action_counts, self._eps)
         return action_values + self.c * np.sqrt(log_t / floored_counts)
