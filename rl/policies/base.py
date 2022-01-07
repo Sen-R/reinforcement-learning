@@ -1,7 +1,7 @@
 """Abstract base classes for policies subpackage."""
 
 from abc import ABC, abstractmethod
-from rl.action_selector import ActionSelector
+from rl.action_selectors import ActionSelector
 
 
 class Policy(ABC):

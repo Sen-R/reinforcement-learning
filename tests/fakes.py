@@ -1,7 +1,7 @@
 from typing import Final
 from rl.policies.base import DumbPolicy
 from rl.agent import Agent
-from rl.action_selector import DeterministicActionSelector
+from rl.action_selectors import DeterministicActionSelector
 from rl.environments.base import Environment
 
 

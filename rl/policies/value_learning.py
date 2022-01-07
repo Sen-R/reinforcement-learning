@@ -6,7 +6,7 @@ nonassociative settings, e.g. multi-armed bandits.
 
 from typing import List, Optional, Sequence
 from .base import Policy
-from ..action_selector import ActionSelector
+from ..action_selectors import ActionSelector
 from .action_selection_strategy import ActionSelectionStrategy
 from ..custom_types import LearningRateSchedule
 from ..learningrate import SampleAverageLearningRate

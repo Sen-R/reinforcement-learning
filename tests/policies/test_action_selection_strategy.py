@@ -2,7 +2,7 @@ from unittest.mock import patch
 import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from rl.policies.action_selection_strategy import EpsilonGreedy, UCB
-from rl.action_selector import (
+from rl.action_selectors import (
     DeterministicActionSelector,
     UniformDiscreteActionSelector,
     NoisyActionSelector,

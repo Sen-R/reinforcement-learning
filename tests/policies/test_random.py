@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 from rl.policies.random import DiscreteRandomPolicy
-from rl.action_selector import UniformDiscreteActionSelector
+from rl.action_selectors import UniformDiscreteActionSelector
 
 
 class TestDiscreteRandomPolicy:

@@ -2,7 +2,7 @@
 
 from typing import Final
 from .base import DumbPolicy
-from ..action_selector import UniformDiscreteActionSelector
+from ..action_selectors import UniformDiscreteActionSelector
 
 
 class DiscreteRandomPolicy(DumbPolicy):

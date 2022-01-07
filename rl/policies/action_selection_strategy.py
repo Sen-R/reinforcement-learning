@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from typing import List, Optional
 from numpy.typing import ArrayLike
 import numpy as np
-from rl.action_selector import (
+from rl.action_selectors import (
     ActionSelector,
     DeterministicActionSelector,
     UniformDiscreteActionSelector,
