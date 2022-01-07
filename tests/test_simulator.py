@@ -1,7 +1,7 @@
 from typing import List, Tuple, Final
 from .fakes import FakePolicy, FakeEnvironment, fake_agent
 from rl.environments.base import Environment
-from rl.agent import Agent
+from rl import Agent
 from rl.simulator import SingleAgentWaitingSimulator, History
 
 

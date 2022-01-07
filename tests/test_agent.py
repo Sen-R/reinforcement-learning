@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import create_autospec, patch
 from .fakes import fake_agent, FakePolicy
-from rl.agent import Agent
+from rl import Agent
 from rl.action_selectors import DeterministicActionSelector
 
 
