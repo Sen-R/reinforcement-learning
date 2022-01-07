@@ -2,6 +2,7 @@ import numpy as np
 from rl.policies.value_learning import RewardAveragingPolicy
 from rl.policies.action_selection_strategy import EpsilonGreedy
 from rl.agents import EpsilonGreedyRewardAveragingAgent
+from rl.learningrate import SampleAverageLearningRate
 
 
 class TestEpsilonGreedyRewardAveragingAgent:
@@ -32,3 +33,13 @@ class TestEpsilonGreedyRewardAveragingAgent:
         assert policy.alpha == learning_rate_schedule
         assert policy.Q == initial_action_values
         assert policy.action_selection_strategy._rng == rng
+
+    def test_defaults(self) -> None:
+        # Create agent
+        epsilon = 0.1
+        n_actions = 2
+        agent = EpsilonGreedyRewardAveragingAgent(epsilon, n_actions)
+        policy = agent.policy
+        assert isinstance(policy, RewardAveragingPolicy)
+        assert isinstance(policy.alpha, SampleAverageLearningRate)
+        assert policy.Q == [0.0] * 2

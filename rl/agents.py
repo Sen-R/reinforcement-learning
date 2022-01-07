@@ -26,7 +26,7 @@ class EpsilonGreedyRewardAveragingAgent(Agent):
         epsilon: float,
         n_actions: int,
         *,
-        learning_rate_schedule: LearningRateSchedule,
+        learning_rate_schedule: LearningRateSchedule = None,
         initial_action_values: Optional[Sequence[float]] = None,
         random_state=None,
     ):
