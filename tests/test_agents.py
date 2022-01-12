@@ -32,7 +32,10 @@ class TestEpsilonGreedyRewardAveragingAgent:
         assert len(policy.Q) == n_actions
         assert policy.alpha == learning_rate_schedule
         assert policy.Q == initial_action_values
-        assert policy.action_selection_strategy._rng == rng
+        assert (
+            policy.action_selection_strategy._rng.bit_generator.state
+            == rng.bit_generator.state
+        )
 
     def test_defaults(self) -> None:
         # Create agent
