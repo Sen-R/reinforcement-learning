@@ -52,10 +52,22 @@ class MockEnvironment(Environment):
         return False
 
 
+class MockCallback:
+    """Mock callback to supply to simulator."""
+
+    def __init__(self, name: str, tape: List[Tuple]):
+        self.name = name
+        self.tape = tape
+
+    def __call__(self, sim: SingleAgentWaitingSimulator) -> None:
+        self.tape.append((self.name, sim))
+
+
 def create_environment() -> SingleAgentWaitingSimulator:
     agent = MockAgent(mock_tape)
     environment = MockEnvironment(mock_tape)
-    return SingleAgentWaitingSimulator(environment, agent)
+    callbacks = [MockCallback(name, mock_tape) for name in ["cb0", "cb1"]]
+    return SingleAgentWaitingSimulator(environment, agent, callbacks=callbacks)
 
 
 class TestSingleAgentWaitingSimulator:
@@ -90,12 +102,20 @@ class TestSingleAgentWaitingSimulator:
             ("action", s, a),
             ("act", a, r),
             ("reward", r),
+            ("cb0", sim),
+            ("cb1", sim),
             ("done",),
         ]
         assert mock_tape == expected_tape
         assert sim.history.states[0] == s
         assert sim.history.actions[0] == a
         assert sim.history.rewards[0] == r
+
+    def test_default_simulator_has_no_callbacks(self) -> None:
+        agent = fake_agent()
+        environment = FakeEnvironment()
+        sim = SingleAgentWaitingSimulator(environment, agent)
+        assert len(sim.callbacks) == 0
 
     def test_breaks_when_done(self) -> None:
         """Tests whether simulation loop breaks when environment says
