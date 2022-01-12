@@ -118,3 +118,8 @@ class TestAgent:
             agent.action(state=None)  # raises as reward not called
         agent.reward(reward=0.0)
         agent.action(state=None)  # OK now that reward has been called
+
+    def test_state_method(self) -> None:
+        # Should be an alias of the encapsulated policy's state method
+        agent = fake_agent()
+        assert agent.state == agent.policy.state

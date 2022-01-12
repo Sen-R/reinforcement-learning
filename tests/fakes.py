@@ -6,7 +6,7 @@ from rl.environments.base import Environment
 
 
 class FakePolicy(DumbPolicy):
-    def __init__(self, action_to_always_return):
+    def __init__(self, action_to_always_return: int):
         self.action_selector: Final = DeterministicActionSelector(
             action_to_always_return
         )
@@ -14,8 +14,12 @@ class FakePolicy(DumbPolicy):
     def __call__(self, state) -> DeterministicActionSelector:
         return self.action_selector
 
+    @property
+    def state(self) -> dict:
+        return {}
 
-def fake_agent():
+
+def fake_agent() -> Agent:
     policy = FakePolicy(0)
     return Agent(policy)
 

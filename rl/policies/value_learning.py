@@ -4,7 +4,7 @@ These are agents that ignore state signals. Useful for learning in
 nonassociative settings, e.g. multi-armed bandits.
 """
 
-from typing import List, Optional, Sequence
+from typing import List, Optional, Sequence, Dict, Any
 from .base import Policy
 from ..action_selectors import ActionSelector
 from .action_selection_strategy import ActionSelectionStrategy
@@ -83,3 +83,7 @@ class RewardAveragingPolicy(Policy):
 
     def __call__(self, state=None) -> ActionSelector:
         return self.action_selection_strategy(self.Q, self.action_counts)
+
+    @property
+    def state(self) -> Dict[str, Any]:
+        return {"Q": self.Q.copy(), "action_counts": self.action_counts.copy()}

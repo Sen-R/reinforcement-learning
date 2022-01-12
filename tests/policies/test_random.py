@@ -21,3 +21,9 @@ class TestDiscreteRandomPolicy:
         policy = DiscreteRandomPolicy(5)
         action = policy(state)
         assert isinstance(action, UniformDiscreteActionSelector)
+
+    def test_state_attr_returns_empty_dict(self) -> None:
+        """State method should return empty dict as this policy has no
+        parameters."""
+        policy = DiscreteRandomPolicy(5)
+        assert policy.state == {}

@@ -1,6 +1,6 @@
 """Module defines Agent."""
 
-from typing import Any
+from typing import Any, Dict
 from rl.policies.base import Policy
 
 
@@ -68,3 +68,7 @@ class Agent:
         # Clear last state and action fields to indicate agent is ready
         # to determine its next action.
         del self.last_state, self.last_action
+
+    @property
+    def state(self) -> Dict[str, Any]:
+        return self.policy.state

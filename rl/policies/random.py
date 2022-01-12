@@ -1,6 +1,6 @@
 """Implementation of agents that take random actions."""
 
-from typing import Final
+from typing import Final, Dict, Any
 from .base import DumbPolicy
 from ..action_selectors import UniformDiscreteActionSelector
 
@@ -15,3 +15,7 @@ class DiscreteRandomPolicy(DumbPolicy):
 
     def __call__(self, state) -> UniformDiscreteActionSelector:
         return self._action_selector
+
+    @property
+    def state(self) -> Dict[str, Any]:
+        return {}

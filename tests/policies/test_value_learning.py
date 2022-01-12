@@ -102,3 +102,19 @@ class TestRewardAveragingPolicy:
         for reward, Q_after_update in zip(rewards, expected_Qs_after_updates):
             policy.update(state, action, reward)
             assert_array_almost_equal(policy.Q, Q_after_update)
+
+    def test_state_attr_returns_action_values_and_counts(self) -> None:
+        policy = RewardAveragingPolicy(
+            3, action_selection_strategy=EpsilonGreedy()
+        )
+        policy_state = policy.state
+
+        # Check state dictionary has expected values
+        assert policy_state == {
+            "Q": policy.Q,
+            "action_counts": policy.action_counts,
+        }
+
+        # However returned state should contain copies
+        assert policy_state["Q"] is not policy.Q
+        assert policy_state["action_counts"] is not policy.action_counts

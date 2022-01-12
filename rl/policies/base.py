@@ -1,5 +1,6 @@
 """Abstract base classes for policies subpackage."""
 
+from typing import Dict, Any
 from abc import ABC, abstractmethod
 from rl.action_selectors import ActionSelector
 
@@ -22,6 +23,12 @@ class Policy(ABC):
     @abstractmethod
     def update(self, state, action, reward) -> None:
         """Updates policy given state-action-reward triple of experience."""
+        pass
+
+    @property
+    @abstractmethod
+    def state(self) -> Dict[str, Any]:
+        """Returns the states (weights) of the policy."""
         pass
 
 
