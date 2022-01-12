@@ -48,7 +48,6 @@ class RewardAveragingPolicy(Policy):
         learning_rate_schedule: LearningRateSchedule = None,
         initial_action_values: Optional[Sequence[float]] = None,
     ) -> None:
-        self._n_actions = n_actions
         self.action_selection_strategy = action_selection_strategy
         self._action_counts = [0] * n_actions
         if initial_action_values is None:
