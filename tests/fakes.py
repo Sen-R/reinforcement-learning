@@ -10,17 +10,19 @@ class FakePolicy(DumbPolicy):
         self.action_selector: Final = DeterministicActionSelector(
             action_to_always_return
         )
+        self._state = 0  # "state" is call count
 
     def __call__(self, state) -> DeterministicActionSelector:
+        self._state += 1
         return self.action_selector
 
     @property
     def state(self) -> dict:
-        return {}
+        return {"call_count": self._state}
 
 
-def fake_agent() -> Agent:
-    policy = FakePolicy(0)
+def fake_agent(action_to_always_return: int = 0) -> Agent:
+    policy = FakePolicy(action_to_always_return)
     return Agent(policy)
 
 
@@ -48,4 +50,7 @@ class FakeEnvironment(Environment):
 
     @property
     def done(self) -> bool:
-        return self.t >= self.episode_length
+        if self.episode_length is None:
+            return False
+        else:
+            return self.t >= self.episode_length
