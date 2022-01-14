@@ -27,6 +27,7 @@ class MultiArmedBandit(Environment):
         self,
         means: ArrayLike,
         sigmas: ArrayLike,
+        *,
         random_state=None,
     ):
         self.means = np.array(means)
@@ -65,7 +66,7 @@ def random_bandit(
     *,
     mean_params: Tuple[float, float],
     sigma_params: Tuple[float, float],
-    random_state=None
+    random_state=None,
 ) -> MultiArmedBandit:
     """Returns a randomly generated `k`-armed bandit instance.
 
