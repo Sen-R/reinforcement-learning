@@ -3,7 +3,7 @@
 This module provides an implementation of a multi-armed bandit environment.
 """
 
-from typing import Tuple
+from typing import Tuple, Optional
 from numpy.typing import ArrayLike
 import numpy as np
 from .base import Environment
@@ -17,10 +17,17 @@ class MultiArmedBandit(Environment):
     are normally distributed with parameters defined when the bandit
     is initialised.
 
+    Optionally, by setting `random_walk_params`, the bandit's expected
+    rewards (as stored in the `means` attribute) can take a random walk,
+    changing after each `act` step that is taken.
+
     Args:
       means: Sequence of mean rewards for each lever
       sigma: Sequence of reward standard deviations for each lever
       random_state: `None`, `int`, `Generator` etc to initialise RNG.
+      random_walk_params: `(mean, sigma)` tuple parameterising independent
+        normal variates to additively apply to each lever mean after every
+        `act` step.
     """
 
     def __init__(
@@ -29,9 +36,11 @@ class MultiArmedBandit(Environment):
         sigmas: ArrayLike,
         *,
         random_state=None,
+        random_walk_params: Optional[Tuple[float, float]] = None,
     ):
         self.means = np.array(means)
         self.sigmas = np.array(sigmas)
+        self.random_walk_params = random_walk_params
         self.reset(random_state)
 
     @property
@@ -41,9 +50,16 @@ class MultiArmedBandit(Environment):
 
     def act(self, lever: int) -> float:
         """Returns reward for pulling lever `lever`."""
-        return self._rng.normal(
+        reward = self._rng.normal(
             loc=self.means[lever], scale=self.sigmas[lever]
         )
+        if self.random_walk_params is not None:
+            self.means += self._rng.normal(
+                loc=self.random_walk_params[0],
+                scale=self.random_walk_params[1],
+                size=self.means.shape,
+            )
+        return reward
 
     def observe(self) -> None:
         """Bandit is stateless so always returns `None`."""
