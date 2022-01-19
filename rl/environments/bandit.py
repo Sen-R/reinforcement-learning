@@ -3,7 +3,7 @@
 This module provides an implementation of a multi-armed bandit environment.
 """
 
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Dict
 from numpy.typing import ArrayLike
 import numpy as np
 from .base import Environment
@@ -75,6 +75,10 @@ class MultiArmedBandit(Environment):
     def done(self) -> bool:
         """Non episodic environment, so always returns False."""
         return False
+
+    @property
+    def state(self) -> Dict[str, ArrayLike]:
+        return {"means": self.means.copy(), "sigmas": self.sigmas.copy()}
 
 
 def random_bandit(

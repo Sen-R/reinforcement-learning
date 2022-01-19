@@ -1,4 +1,4 @@
-from typing import Final
+from typing import Final, Dict
 from rl.policies.base import DumbPolicy
 from rl import Agent
 from rl.action_selectors import DeterministicActionSelector
@@ -54,3 +54,7 @@ class FakeEnvironment(Environment):
             return False
         else:
             return self.t >= self.episode_length
+
+    @property
+    def state(self) -> Dict[str, int]:
+        return {"action_count": self.t}

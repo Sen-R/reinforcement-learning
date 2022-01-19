@@ -96,6 +96,14 @@ class TestBandit:
         are as expected given the random walk parameters."""
         pytest.fail("Test not yet implemented")
 
+    def test_state_property(self) -> None:
+        means = [0.0, 1.0]
+        sigmas = [2.0, 3.0]
+        b = MultiArmedBandit(means=means, sigmas=sigmas)
+        state = b.state
+        assert_array_equal(state["means"], means)
+        assert_array_equal(state["sigmas"], sigmas)
+
 
 class TestRandomBandit:
     def test_random_bandit(self) -> None:

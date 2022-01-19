@@ -1,5 +1,5 @@
 from numpy.testing import assert_array_equal
-from rl.callbacks import History, AgentStateLogger
+from rl.callbacks import History, AgentStateLogger, EnvironmentStateLogger
 from rl.simulator import SingleAgentWaitingSimulator
 from .fakes import FakeEnvironment, fake_agent
 
@@ -75,4 +75,22 @@ class TestAgentStateLogger:
 
     def test_default_period_is_one(self):
         callback = AgentStateLogger()
+        assert callback.logging_period == 1
+
+
+class TestEnvironmentStateLogger:
+    def test_functional(self):
+        environment = FakeEnvironment()
+        agent = fake_agent()
+        callbacks = [EnvironmentStateLogger(logging_period=5)]
+        sim = SingleAgentWaitingSimulator(
+            environment, agent, callbacks=callbacks
+        )
+        sim.run(15)
+        assert callbacks[0].states == [
+            {"action_count": s} for s in [5, 10, 15]
+        ]
+
+    def test_default_period_is_one(self):
+        callback = EnvironmentStateLogger()
         assert callback.logging_period == 1

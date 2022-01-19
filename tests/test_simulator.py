@@ -52,6 +52,11 @@ class MockEnvironment(Environment):
         self.tape.append(("done",))
         return False
 
+    @property
+    def state(self) -> float:
+        self.tape.append(("state",))
+        return self.state_to_return
+
 
 class MockCallback(Callback):
     """Mock callback to supply to simulator."""

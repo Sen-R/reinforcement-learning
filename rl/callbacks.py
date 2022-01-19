@@ -74,3 +74,30 @@ class AgentStateLogger(Callback):
     @property
     def states(self) -> List[Dict[str, Any]]:
         return self._states
+
+
+class EnvironmentStateLogger(Callback):
+    """Periodically logs the (full) state of the environment.
+
+    Args:
+      logging_period: logs the state every `logging_period` steps
+    """
+
+    def __init__(self, logging_period: int = 1):
+        self.logging_period = logging_period
+        self._states: List = []
+
+    def __call__(
+        self,
+        sim: "simulator.SingleAgentWaitingSimulator",
+        state,
+        action,
+        reward,
+        done,
+    ):
+        if (sim.t % self.logging_period) == 0:
+            self._states.append(sim.environment.state)
+
+    @property
+    def states(self) -> List:
+        return self._states

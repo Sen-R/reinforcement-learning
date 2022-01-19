@@ -33,3 +33,9 @@ class Environment(ABC):
     def done(self) -> bool:
         """Whether terminal state has been reached."""
         pass
+
+    @property
+    @abstractmethod
+    def state(self):
+        """Returns full state of the environment."""
+        pass
