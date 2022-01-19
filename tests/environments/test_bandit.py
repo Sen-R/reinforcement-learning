@@ -1,4 +1,3 @@
-import pytest
 import numpy as np
 from numpy.testing import assert_almost_equal, assert_array_equal
 from rl.environments.bandit import MultiArmedBandit, random_bandit
@@ -67,20 +66,31 @@ class TestBandit:
         b = MultiArmedBandit(means, sigmas)
         assert b.optimal_action() == optimal_lever
 
-    def test_random_walk_parameters_unset_by_default(self) -> None:
+    def test_state_updater_unset_by_default(self) -> None:
         b = MultiArmedBandit(means=[1.0], sigmas=[0.0])
-        assert b.random_walk_params is None
+        assert b.state_updater is None
 
-    def test_random_walk_of_rewards_when_set(self) -> None:
+    def test_state_updater_correctly_applied(self) -> None:
+        # Configure bandit with simple state updating function
         means = [0.0, 0.0]
         sigmas = [1.0, 1.0]
-        random_walk_params = (5.0, 1.0)
+
+        def state_updater(means, sigmas):
+            return means + 1.0, sigmas * 0.5
+
         b = MultiArmedBandit(
-            means=means, sigmas=sigmas, random_walk_params=random_walk_params
+            means=means, sigmas=sigmas, state_updater=state_updater
         )
+
+        # Check update correctly happens
         b.act(0)
-        assert np.all(b.means != means)
-        assert_array_equal(b.sigmas, sigmas)
+        assert_array_equal(b.means, [1.0, 1.0])
+        assert_array_equal(b.sigmas, [0.5, 0.5])
+
+        # Check call to reset correctly resets to initial state
+        b.reset()
+        assert_array_equal(b.means, [0.0, 0.0])
+        assert_array_equal(b.sigmas, [1.0, 1.0])
 
     def test_rewards_constant_when_random_walk_params_unset(self) -> None:
         means = [0.0, 0.0]
@@ -89,12 +99,6 @@ class TestBandit:
         b.act(0)
         assert_array_equal(b.means, means)
         assert_array_equal(b.sigmas, sigmas)
-
-    @pytest.mark.xfail(strict=True)
-    def test_random_walk_statistical_properties(self) -> None:
-        """Statistical test to see if drift and variance of rewards
-        are as expected given the random walk parameters."""
-        pytest.fail("Test not yet implemented")
 
     def test_state_property(self) -> None:
         means = [0.0, 1.0]

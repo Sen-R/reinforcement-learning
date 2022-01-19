@@ -3,7 +3,8 @@
 This module provides an implementation of a multi-armed bandit environment.
 """
 
-from typing import Tuple, Optional, Dict
+from typing import Tuple, Optional, Dict, Callable
+from copy import copy
 from numpy.typing import ArrayLike
 import numpy as np
 from .base import Environment
@@ -17,17 +18,21 @@ class MultiArmedBandit(Environment):
     are normally distributed with parameters defined when the bandit
     is initialised.
 
-    Optionally, by setting `random_walk_params`, the bandit's expected
-    rewards (as stored in the `means` attribute) can take a random walk,
-    changing after each `act` step that is taken.
+    Optionally, by setting `state_updater`, it is possible to change the
+    bandit's configuration following each pull of a lever (e.g. to make
+    action values follow a stochastic process).
+
+    Note: when the `reset` method is called, `state_updater` is initialised
+    to a (shallow) copy of the object initially provided. Therefore it is
+    assumed that a shallow copy is sufficient to freeze any internal state
+    in this object.
 
     Args:
       means: Sequence of mean rewards for each lever
       sigma: Sequence of reward standard deviations for each lever
       random_state: `None`, `int`, `Generator` etc to initialise RNG.
-      random_walk_params: `(mean, sigma)` tuple parameterising independent
-        normal variates to additively apply to each lever mean after every
-        `act` step.
+      state_updater: callable that operates on means and sigmas after each
+        `act` call to update bandit's internal parameters.
     """
 
     def __init__(
@@ -36,12 +41,23 @@ class MultiArmedBandit(Environment):
         sigmas: ArrayLike,
         *,
         random_state=None,
-        random_walk_params: Optional[Tuple[float, float]] = None,
+        state_updater: Optional[
+            Callable[[ArrayLike, ArrayLike], Tuple[ArrayLike, ArrayLike]]
+        ] = None,
     ):
-        self.means = np.array(means)
-        self.sigmas = np.array(sigmas)
-        self.random_walk_params = random_walk_params
-        self.reset(random_state)
+        self.initial_args = {
+            "means": np.array(means),
+            "sigmas": np.array(sigmas),
+            "random_state": random_state,
+            "state_updater": state_updater,
+        }
+        self.reset()
+
+    def reset(self) -> None:
+        self.means = np.array(self.initial_args["means"])
+        self.sigmas = np.array(self.initial_args["sigmas"])
+        self._rng = np.random.default_rng(self.initial_args["random_state"])
+        self.state_updater = copy(self.initial_args["state_updater"])
 
     @property
     def k(self) -> int:
@@ -53,11 +69,9 @@ class MultiArmedBandit(Environment):
         reward = self._rng.normal(
             loc=self.means[lever], scale=self.sigmas[lever]
         )
-        if self.random_walk_params is not None:
-            self.means += self._rng.normal(
-                loc=self.random_walk_params[0],
-                scale=self.random_walk_params[1],
-                size=self.means.shape,
+        if self.state_updater is not None:
+            self.means, self.sigmas = self.state_updater(
+                self.means, self.sigmas
             )
         return reward
 
@@ -67,9 +81,6 @@ class MultiArmedBandit(Environment):
 
     def optimal_action(self) -> int:
         return int(np.argmax(self.means))
-
-    def reset(self, random_state=None) -> None:
-        self._rng = np.random.default_rng(random_state)
 
     @property
     def done(self) -> bool:

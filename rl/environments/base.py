@@ -24,7 +24,7 @@ class Environment(ABC):
         pass
 
     @abstractmethod
-    def reset(self, random_state=None) -> None:
+    def reset(self) -> None:
         """Resets current environment (e.g. to avoid making from scratch)."""
         pass
 
