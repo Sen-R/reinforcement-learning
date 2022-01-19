@@ -10,6 +10,7 @@ class TestHistory:
         assert len(h.states) == 0
         assert len(h.actions) == 0
         assert len(h.rewards) == 0
+        assert h.logging_period == 1
 
     def test_call(self) -> None:
         h = History()
@@ -42,21 +43,23 @@ class TestHistory:
         STATE = (1, 2, 3)
         ACTION = 5
         REWARD = 1.0
-        EPISODE_LENGTH = 2
+        EPISODE_LENGTH = 10
+        LOGGING_PERIOD = 5
         environment = FakeEnvironment(
             state_to_return=STATE,
             reward_to_return=REWARD,
             episode_length=EPISODE_LENGTH,
         )
         agent = fake_agent(action_to_always_return=ACTION)
-        history = History()
+        history = History(logging_period=5)
         sim = SingleAgentWaitingSimulator(
             environment, agent, callbacks=[history]
         )
         sim.run(EPISODE_LENGTH + 100)
-        assert_array_equal(history.states, [STATE] * EPISODE_LENGTH)
-        assert_array_equal(history.actions, [ACTION] * EPISODE_LENGTH)
-        assert_array_equal(history.rewards, [REWARD] * EPISODE_LENGTH)
+        expected_length = EPISODE_LENGTH // LOGGING_PERIOD
+        assert_array_equal(history.states, [STATE] * expected_length)
+        assert_array_equal(history.actions, [ACTION] * expected_length)
+        assert_array_equal(history.rewards, [REWARD] * expected_length)
 
 
 class TestAgentStateLogger:

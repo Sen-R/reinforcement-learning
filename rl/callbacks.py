@@ -20,10 +20,11 @@ class Callback:
 class History(Callback):
     """Class for keeping track of simulation history."""
 
-    def __init__(self):
-        self.states = []
-        self.actions = []
-        self.rewards = []
+    def __init__(self, logging_period: int = 1):
+        self.states: List = []
+        self.actions: List = []
+        self.rewards: List = []
+        self.logging_period = logging_period
 
     def __call__(
         self,
@@ -34,9 +35,10 @@ class History(Callback):
         done: bool,
     ):
         """Adds state-action-reward triple to history."""
-        self.states.append(state)
-        self.actions.append(action)
-        self.rewards.append(reward)
+        if (sim.t % self.logging_period) == 0:
+            self.states.append(state)
+            self.actions.append(action)
+            self.rewards.append(reward)
 
     def to_dict(self) -> Dict[str, List]:
         """Exports history as python dictionary."""
