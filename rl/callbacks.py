@@ -1,13 +1,50 @@
 from typing import Dict, List, Any
-from rl.simulator import SingleAgentWaitingSimulator
+import rl.simulator as simulator
 
 
 class Callback:
     """Base class for implementing custom callbacks."""
 
-    def __call__(self, sim: SingleAgentWaitingSimulator) -> None:
+    def __call__(
+        self,
+        sim: "simulator.SingleAgentWaitingSimulator",
+        state,
+        action,
+        reward,
+        done: bool,
+    ) -> None:
         """This method is called at the end of each step."""
         pass
+
+
+class History(Callback):
+    """Class for keeping track of simulation history."""
+
+    def __init__(self):
+        self.states = []
+        self.actions = []
+        self.rewards = []
+
+    def __call__(
+        self,
+        sim: "simulator.SingleAgentWaitingSimulator",
+        state,
+        action,
+        reward,
+        done: bool,
+    ):
+        """Adds state-action-reward triple to history."""
+        self.states.append(state)
+        self.actions.append(action)
+        self.rewards.append(reward)
+
+    def to_dict(self) -> Dict[str, List]:
+        """Exports history as python dictionary."""
+        return {
+            "states": self.states.copy(),
+            "actions": self.actions.copy(),
+            "rewards": self.rewards.copy(),
+        }
 
 
 class AgentStateLogger(Callback):
@@ -21,7 +58,14 @@ class AgentStateLogger(Callback):
         self.logging_period = logging_period
         self._states: List[Dict[str, Any]] = []
 
-    def __call__(self, sim: SingleAgentWaitingSimulator) -> None:
+    def __call__(
+        self,
+        sim: "simulator.SingleAgentWaitingSimulator",
+        state,
+        action,
+        reward,
+        done,
+    ) -> None:
         if (sim.t % self.logging_period) == 0:
             self._states.append(sim.agent.state)
 

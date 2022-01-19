@@ -1,30 +1,8 @@
 """Module implementing simulation engine."""
-from typing import Dict, List, Iterable, Callable, Optional
+from typing import Iterable, Optional
 from rl.environments.base import Environment
 from rl.agent import Agent
-
-
-class History:
-    """Class for keeping track of simulation history."""
-
-    def __init__(self):
-        self.states = []
-        self.actions = []
-        self.rewards = []
-
-    def add(self, state, action, reward):
-        """Adds state-action-reward triple to history."""
-        self.states.append(state)
-        self.actions.append(action)
-        self.rewards.append(reward)
-
-    def to_dict(self) -> Dict[str, List]:
-        """Exports history as python dictionary."""
-        return {
-            "states": self.states.copy(),
-            "actions": self.actions.copy(),
-            "rewards": self.rewards.copy(),
-        }
+import rl.callbacks as callbacks
 
 
 class SingleAgentWaitingSimulator:
@@ -38,19 +16,17 @@ class SingleAgentWaitingSimulator:
         self,
         environment: Environment,
         agent: Agent,
-        callbacks: Optional[
-            Iterable[Callable[["SingleAgentWaitingSimulator"], None]]
-        ] = None,
+        callbacks: Optional[Iterable["callbacks.Callback"]] = None,
     ):
         self.environment = environment
         self.agent = agent
-        self.history = History()
         self.callbacks = [] if callbacks is None else list(callbacks)
+        self._t = 0
 
     @property
     def t(self) -> int:
         """Returns the current time step."""
-        return len(self.history.states)
+        return self._t
 
     def run(self, n_steps: int):
         """Runs the simulation for `n_steps` time steps.
@@ -62,8 +38,9 @@ class SingleAgentWaitingSimulator:
             action = self.agent.action(state)
             reward = self.environment.act(action)
             self.agent.reward(reward)
-            self.history.add(state, action, reward)
+            done = self.environment.done
+            self._t += 1
             for callback in self.callbacks:
-                callback(self)
-            if self.environment.done:
+                callback(self, state, action, reward, done)
+            if done:
                 break

@@ -2,7 +2,8 @@ from typing import List, Tuple, Final
 from .fakes import FakePolicy, FakeEnvironment, fake_agent
 from rl.environments.base import Environment
 from rl import Agent
-from rl.simulator import SingleAgentWaitingSimulator, History
+from rl.simulator import SingleAgentWaitingSimulator
+from rl.callbacks import Callback
 
 
 mock_tape: List[Tuple] = []
@@ -52,15 +53,22 @@ class MockEnvironment(Environment):
         return False
 
 
-class MockCallback:
+class MockCallback(Callback):
     """Mock callback to supply to simulator."""
 
     def __init__(self, name: str, tape: List[Tuple]):
         self.name = name
         self.tape = tape
 
-    def __call__(self, sim: SingleAgentWaitingSimulator) -> None:
-        self.tape.append((self.name, sim))
+    def __call__(
+        self,
+        sim: SingleAgentWaitingSimulator,
+        state,
+        action,
+        reward,
+        done: bool,
+    ) -> None:
+        self.tape.append((self.name, sim, state, action, reward, done))
 
 
 def create_environment() -> SingleAgentWaitingSimulator:
@@ -75,18 +83,12 @@ class TestSingleAgentWaitingSimulator:
         sim = create_environment()
         assert isinstance(sim.environment, Environment)
         assert isinstance(sim.agent, Agent)
-        assert len(sim.history.states) == 0
-        assert len(sim.history.actions) == 0
-        assert len(sim.history.rewards) == 0
         assert sim.t == 0
 
     def test_run_history(self) -> None:
         n_steps = 5
         sim = create_environment()
         sim.run(n_steps)
-        assert len(sim.history.states) == n_steps
-        assert len(sim.history.actions) == n_steps
-        assert len(sim.history.rewards) == n_steps
         assert sim.t == n_steps
 
     def test_run_env_agent_interactions_are_correct(self) -> None:
@@ -102,14 +104,11 @@ class TestSingleAgentWaitingSimulator:
             ("action", s, a),
             ("act", a, r),
             ("reward", r),
-            ("cb0", sim),
-            ("cb1", sim),
             ("done",),
+            ("cb0", sim, s, a, r, False),
+            ("cb1", sim, s, a, r, False),
         ]
         assert mock_tape == expected_tape
-        assert sim.history.states[0] == s
-        assert sim.history.actions[0] == a
-        assert sim.history.rewards[0] == r
 
     def test_default_simulator_has_no_callbacks(self) -> None:
         agent = fake_agent()
@@ -132,32 +131,3 @@ class TestSingleAgentWaitingSimulator:
         run_length = 102  # much greater than epsiode length
         sim.run(run_length)
         assert sim.t == episode_length
-
-
-class TestHistory:
-    def test_init(self) -> None:
-        h = History()
-        assert len(h.states) == 0
-        assert len(h.actions) == 0
-        assert len(h.rewards) == 0
-
-    def test_add(self) -> None:
-        h = History()
-        s, a, r = [1.0], 3, 0.5
-        h.add(s, a, r)
-        assert h.states == [s]
-        assert h.actions == [a]
-        assert h.rewards == [r]
-
-    def test_to_dict(self) -> None:
-        h = History()
-        s, a, r = [1.0], 3, 0.5
-        h.add(s, a, r)
-        expected_dict = {"states": [s], "actions": [a], "rewards": [r]}
-        actual_dict = h.to_dict()
-        assert actual_dict == expected_dict
-
-        # Also check that data has been copied to create the dict
-        assert h.states is not actual_dict["states"]
-        assert h.actions is not actual_dict["actions"]
-        assert h.rewards is not actual_dict["rewards"]
