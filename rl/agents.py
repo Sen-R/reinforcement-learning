@@ -53,6 +53,8 @@ class UCBRewardAveragingAgent(Agent):
         `rl.learningrate`
       initial_action_values: initial estimates of the value of each action,
         by default set to zero for all actions
+      random_state: for compatibility with other agent constructors, though
+        this agent is does not use any randomness
     """
 
     def __init__(
@@ -62,6 +64,7 @@ class UCBRewardAveragingAgent(Agent):
         *,
         learning_rate_schedule: LearningRateSchedule = None,
         initial_action_values: Optional[Sequence[float]] = None,
+        random_state=None,
     ):
         policy = RewardAveragingPolicy(
             n_actions,

@@ -87,3 +87,10 @@ class TestUCBRewardAveragingAgent:
         assert isinstance(policy, RewardAveragingPolicy)
         assert isinstance(policy.alpha, SampleAverageLearningRate)
         assert policy.Q == [0.0] * 2
+
+    def test_optional_random_state_argument_is_allowed(self) -> None:
+        # For compatibility with other agents that do rely on randomness
+        c = 2
+        n_actions = 2
+        random_state = 42
+        UCBRewardAveragingAgent(c, n_actions, random_state=random_state)
