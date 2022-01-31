@@ -1,9 +1,12 @@
 import numpy as np
+from numpy.testing import assert_array_equal
 from rl.policies.value_learning import RewardAveragingPolicy
 from rl.policies.action_selection_strategy import EpsilonGreedy, UCB
+from rl.policies.gradients import GradientBandit
 from rl.agents import (
     EpsilonGreedyRewardAveragingAgent,
     UCBRewardAveragingAgent,
+    GradientBanditAgent,
 )
 from rl.learningrate import SampleAverageLearningRate
 
@@ -94,3 +97,28 @@ class TestUCBRewardAveragingAgent:
         n_actions = 2
         random_state = 42
         UCBRewardAveragingAgent(c, n_actions, random_state=random_state)
+
+
+class TestGradientBanditAgent:
+    def test_functionality(self) -> None:
+        # Set up agent
+        alpha = 0.1
+        n_actions = 2
+        baseline = 3
+        initial_preferences = [0.1, 0.2]
+        seed = 42
+        agent = GradientBanditAgent(
+            alpha,
+            n_actions,
+            baseline=baseline,
+            initial_preferences=initial_preferences,
+            random_state=seed,
+        )
+
+        # Test parameters are as expected
+        policy = agent.policy
+        assert isinstance(policy, GradientBandit)
+        assert policy.alpha == alpha
+        assert_array_equal(policy.H, initial_preferences)
+        assert policy.baseline == 3
+        assert policy._rng.random() == np.random.default_rng(seed).random()

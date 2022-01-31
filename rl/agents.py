@@ -1,8 +1,10 @@
-from typing import Optional, Sequence
+from typing import Optional, Sequence, Union, Iterable
 from .agent import Agent
 from .custom_types import LearningRateSchedule
 from .policies.value_learning import RewardAveragingPolicy
 from .policies.action_selection_strategy import EpsilonGreedy, UCB
+from .policies.gradients import GradientBandit
+from .utils import UpdatableParameter
 
 
 class EpsilonGreedyRewardAveragingAgent(Agent):
@@ -71,5 +73,30 @@ class UCBRewardAveragingAgent(Agent):
             action_selection_strategy=UCB(c),
             learning_rate_schedule=learning_rate_schedule,
             initial_action_values=initial_action_values,
+        )
+        super().__init__(policy)
+
+
+class GradientBanditAgent(Agent):
+    """Agent implementing GradientBandit policy.
+
+    See `GradientBandit` docstring for help on arguments.
+    """
+
+    def __init__(
+        self,
+        alpha: float,
+        n_actions: int,
+        *,
+        baseline: Optional[Union[float, UpdatableParameter]] = None,
+        initial_preferences: Optional[Iterable[float]] = None,
+        random_state=None,
+    ):
+        policy = GradientBandit(
+            alpha=alpha,
+            n_actions=n_actions,
+            baseline=baseline,
+            initial_preferences=initial_preferences,
+            random_state=random_state,
         )
         super().__init__(policy)
