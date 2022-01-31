@@ -9,6 +9,7 @@ from rl.action_selectors import (
     DeterministicActionSelector,
     UniformDiscreteActionSelector,
     NoisyActionSelector,
+    DiscreteActionSelector,
 )
 
 
@@ -121,3 +122,31 @@ class TestNoisyActionSelector:
             s()
             preferred.assert_not_called()
             noise.assert_called_with()
+
+
+class TestDiscreteActionSelector:
+    def test_call(self) -> None:
+        # Set up action selector
+        action_selector = DiscreteActionSelector([0.3, 0.7])
+
+        # Patch RNG with a mock and call the action selector
+        with patch.object(
+            action_selector, "_rng", autospec=np.random.Generator
+        ) as mock:
+            action_selector()
+
+        # Use the mock to test if np.random.Generator.choice has been
+        # called with expected arguments
+        assert len(mock.method_calls) == 1
+        assert mock.method_calls[0][0] == "choice"
+        assert mock.method_calls[0][1] == (2,)
+        assert list(mock.method_calls[0][2].keys()) == ["p"]
+        assert_array_equal(mock.method_calls[0][2]["p"], [0.3, 0.7])
+
+    def test_set_random_state(self) -> None:
+        seed = 42
+        action_selector = DiscreteActionSelector([0.1, 0.9], random_state=seed)
+        assert (
+            action_selector._rng.random()
+            == np.random.default_rng(seed).random()
+        )

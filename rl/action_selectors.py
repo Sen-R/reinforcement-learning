@@ -16,6 +16,7 @@ Examples include the following
 """
 
 from abc import ABC, abstractmethod
+from numpy.typing import ArrayLike
 import numpy as np
 
 
@@ -106,6 +107,7 @@ class EpsilonGreedyActionSelector(NoisyActionSelector):
       epsilon: probability of choosing a (uniformly) random action
       chosen_action: desired (greedy) action
       n_actions: size of discrete action space
+      random_state: initial state for RNG
 
     Returns:
       `NoisyActionSelector` instance that when called performs epsilon-greedy
@@ -129,3 +131,19 @@ class EpsilonGreedyActionSelector(NoisyActionSelector):
         preferred = DeterministicActionSelector(chosen_action)
         noise = UniformDiscreteActionSelector(n_actions, random_state=rng)
         super().__init__(epsilon, preferred, noise, random_state=rng)
+
+
+class DiscreteActionSelector(ActionSelector):
+    """Action selection using a specified discrete probability distribution.
+
+    Args:
+      p: probability vector defining the distribution
+      random_state: initial state for RNG
+    """
+
+    def __init__(self, p: ArrayLike, *, random_state=None):
+        self.p = np.array(p)
+        self._rng = np.random.default_rng(random_state)
+
+    def __call__(self) -> int:
+        return self._rng.choice(len(self.p), p=self.p)
