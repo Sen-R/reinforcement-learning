@@ -1,0 +1,59 @@
+from typing import Generic, Sequence, Tuple, Callable
+from numpy.typing import ArrayLike
+from ._types import State, Action
+from abc import ABC, abstractmethod
+
+
+class FiniteMDP(ABC, Generic[Action, State]):
+    """Abstract base class for finite Markov Decision Processes."""
+
+    @property
+    @abstractmethod
+    def states(self) -> Sequence[State]:
+        """Returns list of possible states."""
+        pass
+
+    @property
+    @abstractmethod
+    def actions(self) -> Sequence[Action]:
+        """Returns list of all possible actions."""
+        pass
+
+    @property
+    @abstractmethod
+    def rewards(self) -> Sequence[float]:
+        """Returns list of all possible (expected) rewards."""
+        pass
+
+    @abstractmethod
+    def s2i(self, state) -> int:
+        """Converts a state to its corresponding index in `self.states`."""
+        pass
+
+    @abstractmethod
+    def i2s(self, index) -> State:
+        """Converts a state index to its corresponding state."""
+        pass
+
+    @abstractmethod
+    def bellman_operator(
+        self,
+        gamma: float,
+        pi: Callable[[Action, State], float],
+    ) -> Tuple[ArrayLike, ArrayLike]:
+        """Returns the matrix and vector components of the Bellman
+        operator for this MDP.
+
+        Args:
+          gamma: discount factor
+          pi: function that returns the probability of the given action being
+            taken in the given state, according to the agent's policy
+
+        Returns:
+          A: matrix component of the Bellman operator, `gamma *t(s, s')`
+            where `t` is the state transition matrix under the given policy
+          b: vector component of the Bellman operator, i.e. the expected
+            reward given state `s` (marginalising over all possible actions
+            and transitioned states)
+        """
+        pass
