@@ -36,13 +36,13 @@ class FiniteMDP(ABC, Generic[Action, State]):
         pass
 
     @abstractmethod
-    def bellman_operator(
+    def backup_policy_values_operator(
         self,
         gamma: float,
         pi: Callable[[Action, State], float],
     ) -> Tuple[ArrayLike, ArrayLike]:
-        """Returns the matrix and vector components of the Bellman
-        operator for this MDP.
+        """Returns the matrix and vector components of the Bellman policy
+        evaluation operator for this MDP.
 
         Args:
           gamma: discount factor

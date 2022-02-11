@@ -9,6 +9,6 @@ def exact_state_values(
     gamma: float,
     pi: Callable[[Action, State], float],
 ) -> Dict[State, float]:
-    A, b = mdp.bellman_operator(gamma, pi)
+    A, b = mdp.backup_policy_values_operator(gamma, pi)
     v = np.linalg.solve(np.eye(len(mdp.states)) - A, b)
     return {mdp.i2s(idx): value for idx, value in enumerate(v)}

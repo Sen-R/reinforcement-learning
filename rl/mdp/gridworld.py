@@ -64,7 +64,7 @@ class GridWorld(FiniteMDP[Action, State]):
     def state_is_valid(self, state):
         return min(state) >= 0 and max(state) < self.size
 
-    def bellman_operator(
+    def backup_policy_values_operator(
         self, gamma: float, pi: Callable[[Action, State], float]
     ) -> Tuple[ArrayLike, ArrayLike]:
         expected_rewards_vector = np.zeros(len(self.states))
