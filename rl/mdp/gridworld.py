@@ -84,3 +84,18 @@ class GridWorld(FiniteMDP[Action, State]):
                 ] += (gamma * action_probability)
 
         return discounted_transitions_matrix, expected_rewards_vector
+
+    def backup_optimal_values(
+        self, initial_values: ArrayLike, gamma: float
+    ) -> ArrayLike:
+        updated_values = np.zeros(len(self.states))
+        for state in self.states:
+            action_values = []
+            for action in self.actions:
+                next_state, reward = self.next_state_and_reward(state, action)
+                action_values.append(
+                    reward
+                    + gamma * np.array(initial_values)[self.s2i(next_state)]
+                )
+            updated_values[self.s2i(state)] = max(action_values)
+        return updated_values

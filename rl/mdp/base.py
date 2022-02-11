@@ -57,3 +57,19 @@ class FiniteMDP(ABC, Generic[Action, State]):
             and transitioned states)
         """
         pass
+
+    @abstractmethod
+    def backup_optimal_values(
+        self, initial_values: ArrayLike, gamma: float
+    ) -> ArrayLike:
+        """Single update of the state-value function; RHS of Bellman
+        optimality equation.
+
+        Args:
+          initial_values: array of initial state values to back-up
+          gamma: discount factor
+
+        Returns:
+          array of updated values
+        """
+        pass

@@ -43,10 +43,20 @@ class TestGridWorld:
     def test_i2s(self, gridworld, idx) -> None:
         assert gridworld.i2s(idx) == gridworld.states[idx]
 
-    def test_bellman_operator(self, gridworld) -> None:
-        A, b = gridworld.bellman_operator(0.9, lambda a, s: 0.25)
+    def test_backup_policy_values_operator(self, gridworld) -> None:
+        A, b = gridworld.backup_policy_values_operator(0.9, lambda a, s: 0.25)
         assert b[gridworld.s2i((1, 2))] == 0
         assert b[gridworld.s2i((2, 4))] == -0.25
         assert b[gridworld.s2i((0, 3))] == 5
         assert A[gridworld.s2i((2, 4)), gridworld.s2i((2, 4))] == 0.9 * 0.25
         assert A[gridworld.s2i((1, 2)), gridworld.s2i((3, 3))] == 0
+
+    def test_backup_optimal_values(self, gridworld) -> None:
+        initial_state_values = range(len(gridworld.states))
+        backed_up_values = gridworld.backup_optimal_values(
+            initial_state_values, 0.9
+        )
+
+        # Check values match manual calculation
+        assert backed_up_values[7] == 0.9 * 12
+        assert backed_up_values[1] == 10 + 0.9 * 21
