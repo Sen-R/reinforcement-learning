@@ -46,7 +46,7 @@ class TestBandit:
         # For large dof this is approximately N(n_samples, 2*n_samples)
         chi2_margin = 1.0
         assert np.abs(
-            np.sum(z_scores ** 2) - n_samples
+            np.sum(z_scores**2) - n_samples
         ) < chi2_margin * np.sqrt(2.0 * n_samples)
 
     def test_bandit_act(self) -> None:

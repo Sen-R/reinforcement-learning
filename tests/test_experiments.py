@@ -25,7 +25,7 @@ class TestExperimentalRun:
     def test_results_will_raise_if_experiment_not_yet_run(self) -> None:
         # Create a dummy experimental run
         experiment = ExperimentalRun(
-            methodology=lambda x: x ** 2, parameters={"x": 2}
+            methodology=lambda x: x**2, parameters={"x": 2}
         )
 
         # If we try to access results before running it, this is a RuntimeError
