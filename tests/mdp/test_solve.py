@@ -1,3 +1,4 @@
+import warnings
 import pytest
 from rl.mdp import FiniteMDP
 from rl.mdp.solve import (
@@ -57,3 +58,19 @@ class TestIterativePolicyEvaluation:
                 maxiter=10,
             )
         assert niter == 10
+
+    def test_can_set_tol_to_none_to_perform_fixed_number_of_iterations(
+        self, gridworld
+    ) -> None:
+        # We catch warnings to ensure no warning is raised if tol is None
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            niter = iterative_policy_evaluation(
+                {s: 0.0 for s in gridworld.states},
+                gridworld,
+                gamma=0.9,
+                pi=lambda a, s: 0.25,
+                tol=None,
+                maxiter=5,
+            )
+        assert niter == 5

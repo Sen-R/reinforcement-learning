@@ -65,7 +65,7 @@ def iterative_policy_evaluation(
     mdp: FiniteMDP[Action, State],
     gamma: float,
     pi: Callable[[Action, State], float],
-    tol: float,
+    tol: Optional[float],
     maxiter: int = 100,
 ) -> int:
     """Applies iterative policy evaluation to refine provided state value
@@ -78,7 +78,8 @@ def iterative_policy_evaluation(
       pi: conditional probabilities for actions given states, encoding the
         policy being evaluated
       tol: iteration terminates when maximum absolute change in state value
-        function falls below this value
+        function falls below this value, alternative set to `None` and
+        iteration will proceed until maxiter is reached
       maxiter: iteration terminates when the number of sweeps through the
         MDP's state space reaches this value
 
@@ -91,13 +92,17 @@ def iterative_policy_evaluation(
             v_old = v[s]
             mdp.backup_single_state_value(s, v, gamma, pi)
             delta_v = max(delta_v, abs(v[s] - v_old))
-        if delta_v < tol:
+        if tol is not None and delta_v < tol:
             break
     else:
-        # loop completed normally implying maxiter was reached
-        warn(
-            "`maxiter` sweeps were completed before solution converged to "
-            "within desired tolerance, try increasing either `maxiter` or "
-            "`tol`"
-        )
+        # Loop completed normally implying maxiter was reached. If tol is
+        # not None, these means the solution has not converged to the tolerance
+        # expected.
+
+        if tol is not None:
+            warn(
+                "`maxiter` sweeps were completed before solution converged to "
+                "within desired tolerance, try increasing either `maxiter` or "
+                "`tol`"
+            )
     return niter
