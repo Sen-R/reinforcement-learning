@@ -9,7 +9,7 @@ from typing import (
 )
 from itertools import product
 import numpy as np
-from numpy.typing import ArrayLike
+from numpy.typing import NDArray
 from .base import FiniteMDP
 
 
@@ -102,7 +102,7 @@ class GridWorld(FiniteMDP[Action, State]):
 
     def backup_policy_values_operator(
         self, gamma: float, pi: Callable[[Action, State], float]
-    ) -> Tuple[ArrayLike, ArrayLike]:
+    ) -> Tuple[NDArray[np.float_], NDArray[np.float_]]:
         expected_rewards_vector = np.zeros(len(self.states))
         discounted_transitions_matrix = np.zeros(
             (len(self.states), len(self.states))
@@ -122,8 +122,8 @@ class GridWorld(FiniteMDP[Action, State]):
         return discounted_transitions_matrix, expected_rewards_vector
 
     def backup_optimal_values(
-        self, initial_values: ArrayLike, gamma: float
-    ) -> ArrayLike:
+        self, initial_values: NDArray[np.float_], gamma: float
+    ) -> NDArray[np.float_]:
         updated_values = np.zeros(len(self.states))
         for state in self.states:
             action_values = []

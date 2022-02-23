@@ -1,5 +1,6 @@
 from typing import Generic, Sequence, Tuple, Callable, MutableMapping
-from numpy.typing import ArrayLike
+from numpy.typing import NDArray
+import numpy as np
 from ._types import State, Action
 from abc import ABC, abstractmethod
 
@@ -82,7 +83,7 @@ class FiniteMDP(ABC, Generic[Action, State]):
         self,
         gamma: float,
         pi: Callable[[Action, State], float],
-    ) -> Tuple[ArrayLike, ArrayLike]:
+    ) -> Tuple[NDArray[np.float_], NDArray[np.float_]]:
         """Returns the matrix and vector components of the Bellman policy
         evaluation operator for this MDP.
 
@@ -102,8 +103,8 @@ class FiniteMDP(ABC, Generic[Action, State]):
 
     @abstractmethod
     def backup_optimal_values(
-        self, initial_values: ArrayLike, gamma: float
-    ) -> ArrayLike:
+        self, initial_values: NDArray[np.float_], gamma: float
+    ) -> NDArray[np.float_]:
         """Single update of the state-value function; RHS of Bellman
         optimality equation.
 
