@@ -1,4 +1,5 @@
-from typing import Callable, Dict, Optional
+from typing import Callable, Dict, Optional, Mapping
+from warnings import warn
 import numpy as np
 from scipy import optimize  # type: ignore
 from ._types import State, Action
@@ -57,3 +58,46 @@ def exact_optimum_state_values(
         )
 
     return {mdp.i2s(idx): val for idx, val in enumerate(opt_result.x)}
+
+
+def iterative_policy_evaluation(
+    mdp: FiniteMDP[Action, State],
+    gamma: float,
+    pi: Callable[[Action, State], float],
+    initial_v: Mapping[State, float],
+    tol: float,
+    maxiter: int = 100,
+) -> Dict[State, float]:
+    """Returns state values, estimated by iterative policy evaluation.
+
+    Args:
+      mdp: MDP for which state values are being estimated
+      gamma: discount factor
+      pi: conditional probabilities for actions given states, encoding the
+        policy being evaluated
+      initial_v: initial estimates of state values, at which iteration begins
+      tol: iteration terminates when maximum absolute change in state value
+        function falls below this value
+      maxiter: iteration terminates when the number of sweeps through the
+        MDP's state space reaches this value
+
+    Returns:
+      `dict` mapping states to state values
+    """
+    v = {s: v for s, v in initial_v.items()}
+    for _ in range(maxiter):
+        delta_v = 0.0  # tracks biggest change to v so far
+        for s in mdp.states:
+            v_old = v[s]
+            mdp.backup_single_state_value(s, v, gamma, pi)
+            delta_v = max(delta_v, abs(v[s] - v_old))
+        if delta_v < tol:
+            break
+    else:
+        # loop completed normally implying maxiter was reached
+        warn(
+            "`maxiter` sweeps were completed before solution converged to "
+            "within desired tolerance, try increasing either `maxiter` or "
+            "`tol`"
+        )
+    return v

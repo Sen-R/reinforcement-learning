@@ -1,4 +1,4 @@
-from typing import Generic, Sequence, Tuple, Callable
+from typing import Generic, Sequence, Tuple, Callable, MutableMapping
 from numpy.typing import ArrayLike
 from ._types import State, Action
 from abc import ABC, abstractmethod
@@ -33,6 +33,26 @@ class FiniteMDP(ABC, Generic[Action, State]):
     @abstractmethod
     def i2s(self, index) -> State:
         """Converts a state index to its corresponding state."""
+        pass
+
+    @abstractmethod
+    def backup_single_state_value(
+        self,
+        state: State,
+        v: MutableMapping[State, float],
+        gamma: float,
+        pi: Callable[[Action, State], float],
+    ) -> None:
+        """Updates (in place) estimated value of `state` from estimated value of
+        successor states under policy `pi`.
+
+        Args:
+          state: state whose value is to be updated
+          v: mapping from states to values that is to be updated (in place)
+          gamma: discount factor
+          pi: policy encoded as conditional probabilities of actions given
+            states
+        """
         pass
 
     @abstractmethod

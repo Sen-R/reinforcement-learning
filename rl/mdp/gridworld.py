@@ -1,4 +1,4 @@
-from typing import NewType, Tuple, Sequence, Callable, Mapping
+from typing import NewType, Tuple, Sequence, Callable, Mapping, MutableMapping
 from itertools import product
 import numpy as np
 from numpy.typing import ArrayLike
@@ -63,6 +63,19 @@ class GridWorld(FiniteMDP[Action, State]):
 
     def state_is_valid(self, state):
         return min(state) >= 0 and max(state) < self.size
+
+    def backup_single_state_value(
+        self,
+        state: State,
+        v: MutableMapping[State, float],
+        gamma: float,
+        pi: Callable[[Action, State], float],
+    ):
+        backed_up_v = 0.0
+        for action in self.actions:
+            next_state, reward = self.next_state_and_reward(state, action)
+            backed_up_v += pi(action, state) * (reward + gamma * v[next_state])
+        v[state] = backed_up_v
 
     def backup_policy_values_operator(
         self, gamma: float, pi: Callable[[Action, State], float]

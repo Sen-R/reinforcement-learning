@@ -1,4 +1,5 @@
 import pytest
+from numpy.testing import assert_almost_equal
 
 
 class TestGridWorld:
@@ -42,6 +43,25 @@ class TestGridWorld:
     @pytest.mark.parametrize("idx", [2, 14, 22])
     def test_i2s(self, gridworld, idx) -> None:
         assert gridworld.i2s(idx) == gridworld.states[idx]
+
+    def test_backup_single_state_value(self, gridworld) -> None:
+        # Initialise state value mapping arbitrarily as follows
+        v = {s: gridworld.s2i(s) for s in gridworld.states}
+
+        # Perform a backup update on a single state with arbitrary random
+        # policy and check it meets expectations
+        fixed_pi = {"n": 0.85, "e": 0.05, "w": 0.05, "s": 0.05}
+        gridworld.backup_single_state_value(
+            (4, 0), v, gamma=0.9, pi=lambda a, s: fixed_pi[a]
+        )
+        assert gridworld.s2i((4, 0)) == 20  # sanity check
+        expected_v = (
+            0.05 * (-1 + 0.9 * 20)  # moving west
+            + 0.85 * 0.9 * 15  # moving north
+            + 0.05 * 0.9 * 21  # moving east
+            + 0.05 * (-1 + 0.9 * 20)  # moving south
+        )
+        assert_almost_equal(v[(4, 0)], expected_v)
 
     def test_backup_policy_values_operator(self, gridworld) -> None:
         A, b = gridworld.backup_policy_values_operator(0.9, lambda a, s: 0.25)
