@@ -56,6 +56,26 @@ class FiniteMDP(ABC, Generic[Action, State]):
         pass
 
     @abstractmethod
+    def backup_single_state_optimal_action(
+        self,
+        state: State,
+        v: MutableMapping[State, float],
+        gamma: float,
+    ) -> Action:
+        """Returns an action that maximises expected return from `state`,
+        estimated using the current state value mapping `v`.
+
+        Args:
+          state: current state, for which optimal action is estimated
+          v: estimated state values, used to back-up optimal action
+          gamma: discount factor
+
+        Returns:
+          Maximising action, chosen arbitrarily if there are ties
+        """
+        pass
+
+    @abstractmethod
     def backup_policy_values_operator(
         self,
         gamma: float,

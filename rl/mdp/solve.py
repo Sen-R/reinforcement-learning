@@ -106,3 +106,44 @@ def iterative_policy_evaluation(
                 "`tol`"
             )
     return niter
+
+
+def policy_iteration(
+    v: MutableMapping[State, float],
+    pi: MutableMapping[State, Action],
+    mdp: FiniteMDP[Action, State],
+    gamma: float,
+    tol: float,
+    maxiter: int = 100,
+) -> int:
+    """Performs policy iteration to refine policy `pi` and corresponding
+    state value estimates `v`.
+
+    Args:
+      v: mapping from states to state values for current policy
+      pi: mapping from states to actions, encoding a deterministic policy
+      mdp: MDP for which optimal policy is being searched
+      gamma: discount factor
+      tol: tolerance for embedded policy evaluation component of each policy
+        iteration to converge
+      maxiter: maximum number of policy iterations to perform
+
+    Returns:
+      niter: number of sweeps of the state space that were performed
+    """
+    for niter in range(1, maxiter + 1):
+        policy_stable = True
+        for state in mdp.states:
+            old_action = pi[state]
+            pi[state] = mdp.backup_single_state_optimal_action(state, v, gamma)
+            if old_action != pi[state]:
+                policy_stable = False
+        if policy_stable:
+            break
+        iterative_policy_evaluation(
+            v, mdp, gamma, lambda a, s: (a == pi[s]), tol
+        )
+    else:
+        # maxiter reached but policy not yet stable, so warn
+        warn("maxiter reached but policy not yet stable")
+    return niter

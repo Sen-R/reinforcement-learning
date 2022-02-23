@@ -5,6 +5,7 @@ from rl.mdp.solve import (
     exact_state_values,
     exact_optimum_state_values,
     iterative_policy_evaluation,
+    policy_iteration,
 )
 
 
@@ -74,3 +75,32 @@ class TestIterativePolicyEvaluation:
                 maxiter=5,
             )
         assert niter == 5
+
+
+class TestPolicyIteration:
+    def test_policy_iteration_functionality(self, gridworld) -> None:
+        # Set up initial state value estimates and deterministic policy
+        v = {s: 0.0 for s in gridworld.states}
+        pi = {s: "n" for s in gridworld.states}
+
+        # Perform policy iteration to refine both v and pi
+        niter = policy_iteration(v, pi, gridworld, gamma=0.9, tol=1e-4)
+
+        # Check whether policy matches optimal policy given in Sutton-Baro
+        # for this gridworld
+        assert niter > 0 and niter < 10  # should take less than 10 iterations
+        assert pi[(0, 0)] == "e"
+        assert pi[(1, 2)] in {"n", "w"}
+        assert pi[(4, 1)] == "n"
+
+    def test_maxiter_terminates_iteration(self, gridworld) -> None:
+        with pytest.warns(UserWarning):
+            niter = policy_iteration(
+                {s: 0.0 for s in gridworld.states},
+                {s: "n" for s in gridworld.states},
+                gridworld,
+                gamma=0.9,
+                tol=1e-4,
+                maxiter=2,
+            )
+        assert niter == 2

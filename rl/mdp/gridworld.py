@@ -1,4 +1,12 @@
-from typing import NewType, Tuple, Sequence, Callable, Mapping, MutableMapping
+from typing import (
+    NewType,
+    Tuple,
+    Sequence,
+    Callable,
+    Mapping,
+    MutableMapping,
+    Optional,
+)
 from itertools import product
 import numpy as np
 from numpy.typing import ArrayLike
@@ -76,6 +84,21 @@ class GridWorld(FiniteMDP[Action, State]):
             next_state, reward = self.next_state_and_reward(state, action)
             backed_up_v += pi(action, state) * (reward + gamma * v[next_state])
         v[state] = backed_up_v
+
+    def backup_single_state_optimal_action(
+        self, state: State, v: Mapping[State, float], gamma: float
+    ) -> Action:
+        best_action_and_value: Optional[Tuple[Action, float]] = None
+        for action in self.actions:
+            next_state, reward = self.next_state_and_reward(state, action)
+            this_action_value = reward + gamma * v[next_state]
+            if (
+                best_action_and_value is None
+                or this_action_value > best_action_and_value[1]
+            ):
+                best_action_and_value = (action, this_action_value)
+        assert best_action_and_value is not None
+        return best_action_and_value[0]
 
     def backup_policy_values_operator(
         self, gamma: float, pi: Callable[[Action, State], float]
