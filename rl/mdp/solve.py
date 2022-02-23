@@ -1,4 +1,4 @@
-from typing import Callable, Dict, Optional, Mapping
+from typing import Callable, Dict, Optional, MutableMapping
 from warnings import warn
 import numpy as np
 from scipy import optimize  # type: ignore
@@ -61,31 +61,31 @@ def exact_optimum_state_values(
 
 
 def iterative_policy_evaluation(
+    v: MutableMapping[State, float],
     mdp: FiniteMDP[Action, State],
     gamma: float,
     pi: Callable[[Action, State], float],
-    initial_v: Mapping[State, float],
     tol: float,
     maxiter: int = 100,
-) -> Dict[State, float]:
-    """Returns state values, estimated by iterative policy evaluation.
+) -> int:
+    """Applies iterative policy evaluation to refine provided state value
+    estimates.
 
     Args:
+      v: initial estimates of state values which are refined in place
       mdp: MDP for which state values are being estimated
       gamma: discount factor
       pi: conditional probabilities for actions given states, encoding the
         policy being evaluated
-      initial_v: initial estimates of state values, at which iteration begins
       tol: iteration terminates when maximum absolute change in state value
         function falls below this value
       maxiter: iteration terminates when the number of sweeps through the
         MDP's state space reaches this value
 
     Returns:
-      `dict` mapping states to state values
+      niter: number of sweeps of the state space that were completed
     """
-    v = {s: v for s, v in initial_v.items()}
-    for _ in range(maxiter):
+    for niter in range(1, maxiter + 1):
         delta_v = 0.0  # tracks biggest change to v so far
         for s in mdp.states:
             v_old = v[s]
@@ -100,4 +100,4 @@ def iterative_policy_evaluation(
             "within desired tolerance, try increasing either `maxiter` or "
             "`tol`"
         )
-    return v
+    return niter

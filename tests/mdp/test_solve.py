@@ -33,25 +33,27 @@ class TestExactOptimumStateValues:
 
 class TestIterativePolicyEvaluation:
     def test_iterative_policy_evaluation(self, gridworld) -> None:
-        initial_v = {s: 0.0 for s in gridworld.states}
-        v = iterative_policy_evaluation(
+        v = {s: 0.0 for s in gridworld.states}
+        niter = iterative_policy_evaluation(
+            v,
             gridworld,
             gamma=0.9,
             pi=lambda a, s: 0.25,
-            initial_v=initial_v,
             tol=1e-4,
         )
+        assert niter > 0 and niter < 50  # should take less than 50 sweeps
         assert round(v[(3, 1)], 1) == -0.4
         assert round(v[(4, 3)], 1) == -1.4
         assert round(v[(0, 1)], 1) == 8.8
 
     def test_maxiter_terminates_iteration(self, gridworld) -> None:
         with pytest.warns(UserWarning):
-            iterative_policy_evaluation(
+            niter = iterative_policy_evaluation(
+                {s: 0.0 for s in gridworld.states},
                 gridworld,
                 gamma=0.9,
                 pi=lambda a, s: 0.25,
-                initial_v={s: 0.0 for s in gridworld.states},
                 tol=1e-10,
-                maxiter=1,
+                maxiter=10,
             )
+        assert niter == 10
