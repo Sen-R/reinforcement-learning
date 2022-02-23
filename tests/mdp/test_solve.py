@@ -6,6 +6,7 @@ from rl.mdp.solve import (
     exact_optimum_state_values,
     iterative_policy_evaluation,
     policy_iteration,
+    value_iteration,
 )
 
 
@@ -103,4 +104,24 @@ class TestPolicyIteration:
                 tol=1e-4,
                 maxiter=2,
             )
+        assert niter == 2
+
+
+class TestValueIteration:
+    def test_value_iteration(self, gridworld) -> None:
+        # Set up initial state values function and iterate
+        v_star = {s: 0.0 for s in gridworld.states}
+        niter = value_iteration(v_star, gridworld, gamma=0.9, tol=1e-4)
+
+        # Check whether state values match optimal values given in
+        # Sutton-Barto for this gridworld
+        assert niter > 0 and niter < 30  # typically converges in less than 30
+        assert round(v_star[(3, 1)], 1) == 17.8
+        assert round(v_star[(4, 3)], 1) == 13.0
+        assert round(v_star[(0, 1)], 1) == 24.4
+
+    def test_maxiter_terminates_iteration(self, gridworld) -> None:
+        v_star = {s: 0.0 for s in gridworld.states}
+        with pytest.warns(UserWarning):
+            niter = value_iteration(v_star, gridworld, 0.9, 1e-14, maxiter=2)
         assert niter == 2

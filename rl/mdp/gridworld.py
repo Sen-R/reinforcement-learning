@@ -87,7 +87,7 @@ class GridWorld(FiniteMDP[Action, State]):
 
     def backup_single_state_optimal_action(
         self, state: State, v: Mapping[State, float], gamma: float
-    ) -> Action:
+    ) -> Tuple[Action, float]:
         best_action_and_value: Optional[Tuple[Action, float]] = None
         for action in self.actions:
             next_state, reward = self.next_state_and_reward(state, action)
@@ -98,7 +98,7 @@ class GridWorld(FiniteMDP[Action, State]):
             ):
                 best_action_and_value = (action, this_action_value)
         assert best_action_and_value is not None
-        return best_action_and_value[0]
+        return best_action_and_value
 
     def backup_policy_values_operator(
         self, gamma: float, pi: Callable[[Action, State], float]

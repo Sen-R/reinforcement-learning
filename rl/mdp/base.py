@@ -61,9 +61,10 @@ class FiniteMDP(ABC, Generic[Action, State]):
         state: State,
         v: MutableMapping[State, float],
         gamma: float,
-    ) -> Action:
-        """Returns an action that maximises expected return from `state`,
-        estimated using the current state value mapping `v`.
+    ) -> Tuple[Action, float]:
+        """Returns an action and corresponding value that maximises expected
+        return from `state`, estimated using the current state value mapping
+        `v`.
 
         Args:
           state: current state, for which optimal action is estimated
@@ -71,7 +72,8 @@ class FiniteMDP(ABC, Generic[Action, State]):
           gamma: discount factor
 
         Returns:
-          Maximising action, chosen arbitrarily if there are ties
+          action: maximising action, chosen arbitrarily if there are ties
+          action_value: corresponding maximising action value
         """
         pass
 

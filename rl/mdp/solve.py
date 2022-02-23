@@ -133,10 +133,10 @@ def policy_iteration(
     """
     for niter in range(1, maxiter + 1):
         policy_stable = True
-        for state in mdp.states:
-            old_action = pi[state]
-            pi[state] = mdp.backup_single_state_optimal_action(state, v, gamma)
-            if old_action != pi[state]:
+        for s in mdp.states:
+            old_action = pi[s]
+            pi[s], _ = mdp.backup_single_state_optimal_action(s, v, gamma)
+            if old_action != pi[s]:
                 policy_stable = False
         if policy_stable:
             break
@@ -146,4 +146,39 @@ def policy_iteration(
     else:
         # maxiter reached but policy not yet stable, so warn
         warn("maxiter reached but policy not yet stable")
+    return niter
+
+
+def value_iteration(
+    v: MutableMapping[State, float],
+    mdp: FiniteMDP[Action, State],
+    gamma: float,
+    tol: float,
+    maxiter: int = 100,
+) -> int:
+    """Performs value iteration to evolve the supplied state value mapping `v`
+    into state values for an optimal policy.
+
+    Args:
+      v: initial state value estimates that will be updated in place
+      mdp: MDP for which optimal state values are to be estimated
+      gamma: discount factor
+      tol: if the maximum absolute change of state values in one sweep is
+        below this value, then iteration will stop
+      maxiter: if the number of sweeps of value iteration reaches this value
+        then iteration will stop
+
+    Returns:
+      niter: number of sweeps of the state space that took place
+    """
+    for niter in range(1, maxiter + 1):
+        delta_v = 0.0
+        for s in mdp.states:
+            v_old = v[s]
+            _, v[s] = mdp.backup_single_state_optimal_action(s, v, gamma)
+            delta_v = max(delta_v, abs(v_old - v[s]))
+        if delta_v < tol:
+            break
+    else:
+        warn("`maxiter` reached without convergence within tolerance `tol`")
     return niter

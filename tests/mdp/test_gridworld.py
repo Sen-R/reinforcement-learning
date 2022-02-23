@@ -69,6 +69,21 @@ class TestGridWorld:
             if s != (4, 0):
                 assert v[s] == orig_v[s]
 
+    def test_backup_single_state_optimal_action(self, gridworld) -> None:
+        # Initialise state value mapping arbitrarily as follows
+        v = {s: gridworld.s2i(s) for s in gridworld.states}
+
+        # Call method to identify optimal action and action value estimated
+        # for an arbitrarily chosen state and make sure it conforms to
+        # expectations
+        state = (4, 0)
+        assert gridworld.s2i(state) == 20  # sanity check
+        action, action_value = gridworld.backup_single_state_optimal_action(
+            state, v, gamma=0.9
+        )
+        assert action == "e"  # worked out by hand this is optimal
+        assert action_value == 0.9 * 21  # corresponding action value
+
     def test_backup_policy_values_operator(self, gridworld) -> None:
         A, b = gridworld.backup_policy_values_operator(0.9, lambda a, s: 0.25)
         assert b[gridworld.s2i((1, 2))] == 0
