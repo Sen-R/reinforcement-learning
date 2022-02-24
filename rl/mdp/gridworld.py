@@ -4,7 +4,6 @@ from typing import (
     Sequence,
     Callable,
     Mapping,
-    MutableMapping,
     Optional,
 )
 from itertools import product
@@ -75,15 +74,15 @@ class GridWorld(FiniteMDP[Action, State]):
     def backup_single_state_value(
         self,
         state: State,
-        v: MutableMapping[State, float],
+        v: Mapping[State, float],
         gamma: float,
         pi: Callable[[Action, State], float],
-    ):
+    ) -> float:
         backed_up_v = 0.0
         for action in self.actions:
             next_state, reward = self.next_state_and_reward(state, action)
             backed_up_v += pi(action, state) * (reward + gamma * v[next_state])
-        v[state] = backed_up_v
+        return backed_up_v
 
     def backup_single_state_optimal_action(
         self, state: State, v: Mapping[State, float], gamma: float

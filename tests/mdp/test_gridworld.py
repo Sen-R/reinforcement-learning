@@ -47,12 +47,11 @@ class TestGridWorld:
     def test_backup_single_state_value(self, gridworld) -> None:
         # Initialise state value mapping arbitrarily as follows
         v = {s: gridworld.s2i(s) for s in gridworld.states}
-        orig_v = v.copy()
 
         # Perform a backup update on a single state with arbitrary random
         # policy and check it meets expectations
         fixed_pi = {"n": 0.85, "e": 0.05, "w": 0.05, "s": 0.05}
-        gridworld.backup_single_state_value(
+        updated_v = gridworld.backup_single_state_value(
             (4, 0), v, gamma=0.9, pi=lambda a, s: fixed_pi[a]
         )
         assert gridworld.s2i((4, 0)) == 20  # sanity check
@@ -62,12 +61,7 @@ class TestGridWorld:
             + 0.05 * 0.9 * 21  # moving east
             + 0.05 * (-1 + 0.9 * 20)  # moving south
         )
-        assert_almost_equal(v[(4, 0)], expected_v)
-
-        # All other elements of v should remain unchanged
-        for s in gridworld.states:
-            if s != (4, 0):
-                assert v[s] == orig_v[s]
+        assert_almost_equal(updated_v, expected_v)
 
     def test_backup_single_state_optimal_action(self, gridworld) -> None:
         # Initialise state value mapping arbitrarily as follows

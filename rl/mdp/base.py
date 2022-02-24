@@ -1,4 +1,4 @@
-from typing import Generic, Sequence, Tuple, Callable, MutableMapping
+from typing import Generic, Sequence, Tuple, Callable, Mapping
 from numpy.typing import NDArray
 import numpy as np
 from ._types import State, Action
@@ -40,19 +40,22 @@ class FiniteMDP(ABC, Generic[Action, State]):
     def backup_single_state_value(
         self,
         state: State,
-        v: MutableMapping[State, float],
+        v: Mapping[State, float],
         gamma: float,
         pi: Callable[[Action, State], float],
-    ) -> None:
-        """Updates (in place) estimated value of `state` from estimated value of
+    ) -> float:
+        """Updates estimated value of `state` from estimated value of
         successor states under policy `pi`.
 
         Args:
           state: state whose value is to be updated
-          v: mapping from states to values that is to be updated (in place)
+          v: current mapping from states to values that is to be updated
           gamma: discount factor
           pi: policy encoded as conditional probabilities of actions given
             states
+
+        Returns:
+          updated value estimate for `state`
         """
         pass
 
@@ -60,7 +63,7 @@ class FiniteMDP(ABC, Generic[Action, State]):
     def backup_single_state_optimal_action(
         self,
         state: State,
-        v: MutableMapping[State, float],
+        v: Mapping[State, float],
         gamma: float,
     ) -> Tuple[Action, float]:
         """Returns an action and corresponding value that maximises expected

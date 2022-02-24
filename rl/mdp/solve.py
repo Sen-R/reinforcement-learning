@@ -90,7 +90,7 @@ def iterative_policy_evaluation(
         delta_v = 0.0  # tracks biggest change to v so far
         for s in mdp.states:
             v_old = v[s]
-            mdp.backup_single_state_value(s, v, gamma, pi)
+            v[s] = mdp.backup_single_state_value(s, v, gamma, pi)
             delta_v = max(delta_v, abs(v[s] - v_old))
         if tol is not None and delta_v < tol:
             break
