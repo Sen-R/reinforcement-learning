@@ -1,8 +1,8 @@
+from abc import ABC, abstractmethod
 from typing import Generic, Sequence, Tuple, Callable, Mapping, Optional
 from numpy.typing import NDArray
 import numpy as np
 from ._types import State, Action
-from abc import ABC, abstractmethod
 
 
 class FiniteMDP(ABC, Generic[Action, State]):
