@@ -18,7 +18,7 @@ class TestGridWorld:
             ((0, 3), "e", (2, 3), 5),
         ],
     )
-    def test_next_state_and_reward(
+    def test_next_states_and_rewards(
         self,
         gridworld,
         state,
@@ -26,11 +26,10 @@ class TestGridWorld:
         expected_next_state,
         expected_reward,
     ) -> None:
-        """Tests whether `next_state_and_reward` method delivers expected
-        next states and rewards."""
-        assert gridworld.next_state_and_reward(state, action) == (
-            expected_next_state,
-            expected_reward,
+        """Tests whether `next_states_and_rewards` method delivers expected
+        next states, rewards and probabilities."""
+        assert gridworld.next_states_and_rewards(state, action) == (
+            (expected_next_state, expected_reward, 1.0),
         )
 
     def test_rewards_property(self, gridworld) -> None:

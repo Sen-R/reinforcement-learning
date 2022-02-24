@@ -53,20 +53,18 @@ class GridWorld(FiniteMDP[Action, State]):
     def i2s(self, index: int) -> State:
         return State((index // self.size, index % self.size))
 
-    def next_state_and_reward(
+    def next_states_and_rewards(
         self, state: State, action: Action
-    ) -> Tuple[State, float]:
-        """Returns the next state and reward after taking `action` in
-        `state`."""
+    ) -> Tuple[Tuple[State, float, float]]:
         if state in self.wormholes:
-            return self.wormholes[state]
+            return ((*self.wormholes[state], 1.0),)
         else:
             move = self.actions_to_moves[action]
             next_state = State((state[0] + move[0], state[1] + move[1]))
             if self.state_is_valid(next_state):
-                return next_state, 0
+                return ((next_state, 0, 1.0),)
             else:
-                return state, -1
+                return ((state, -1, 1.0),)
 
     def state_is_valid(self, state):
         return min(state) >= 0 and max(state) < self.size
@@ -79,23 +77,25 @@ class GridWorld(FiniteMDP[Action, State]):
         pi: Callable[[Action, State], float],
     ) -> float:
         backed_up_v = 0.0
-        for action in self.actions:
-            next_state, reward = self.next_state_and_reward(state, action)
-            backed_up_v += pi(action, state) * (reward + gamma * v[next_state])
+        for a in self.actions:
+            for ns, r, p_ns in self.next_states_and_rewards(state, a):
+                backed_up_v += pi(a, state) * p_ns * (r + gamma * v[ns])
         return backed_up_v
 
     def backup_single_state_optimal_action(
         self, state: State, v: Mapping[State, float], gamma: float
     ) -> Tuple[Action, float]:
         best_action_and_value: Optional[Tuple[Action, float]] = None
-        for action in self.actions:
-            next_state, reward = self.next_state_and_reward(state, action)
-            this_action_value = reward + gamma * v[next_state]
+        for a in self.actions:
+            this_action_value = sum(
+                p_ns * (r + gamma * v[ns])
+                for ns, r, p_ns in self.next_states_and_rewards(state, a)
+            )
             if (
                 best_action_and_value is None
                 or this_action_value > best_action_and_value[1]
             ):
-                best_action_and_value = (action, this_action_value)
+                best_action_and_value = (a, this_action_value)
         assert best_action_and_value is not None
         return best_action_and_value
 
@@ -107,30 +107,28 @@ class GridWorld(FiniteMDP[Action, State]):
             (len(self.states), len(self.states))
         )
 
-        for state in self.states:
-            for action in self.actions:
-                next_state, reward = self.next_state_and_reward(state, action)
-                action_probability = pi(action, state)
-                expected_rewards_vector[self.s2i(state)] += (
-                    action_probability * reward
-                )
-                discounted_transitions_matrix[
-                    self.s2i(state), self.s2i(next_state)
-                ] += (gamma * action_probability)
+        for s in self.states:
+            for a in self.actions:
+                p_a = pi(a, s)
+                for ns, r, p_ns in self.next_states_and_rewards(s, a):
+                    expected_rewards_vector[self.s2i(s)] += p_a * p_ns * r
+                    discounted_transitions_matrix[
+                        self.s2i(s), self.s2i(ns)
+                    ] += (gamma * p_a * p_ns)
 
         return discounted_transitions_matrix, expected_rewards_vector
 
     def backup_optimal_values(
         self, initial_values: NDArray[np.float_], gamma: float
     ) -> NDArray[np.float_]:
+        initial_values = np.array(initial_values)
         updated_values = np.zeros(len(self.states))
-        for state in self.states:
-            action_values = []
-            for action in self.actions:
-                next_state, reward = self.next_state_and_reward(state, action)
-                action_values.append(
-                    reward
-                    + gamma * np.array(initial_values)[self.s2i(next_state)]
+        for s in self.states:
+            updated_values[self.s2i(s)] = max(
+                sum(
+                    p_ns * (r + gamma * initial_values[self.s2i(ns)])
+                    for ns, r, p_ns in self.next_states_and_rewards(s, a)
                 )
-            updated_values[self.s2i(state)] = max(action_values)
+                for a in self.actions
+            )
         return updated_values

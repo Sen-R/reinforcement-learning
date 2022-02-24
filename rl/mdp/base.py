@@ -37,6 +37,20 @@ class FiniteMDP(ABC, Generic[Action, State]):
         pass
 
     @abstractmethod
+    def next_states_and_rewards(
+        self, state: State, action: Action
+    ) -> Sequence[Tuple[State, float, float]]:
+        """Returns the next states, expected rewards and corresponding
+        probabilities after taking `action` in `state`.
+
+        Returns:
+          A sequence of tuples `(ns, r, p_ns)`. Each element represents
+          a possible successor state (`ns`), accompanying expected reward,
+          (`r`) and the probability of ending up in that successor state
+          (`p_ns`)."""
+        pass
+
+    @abstractmethod
     def backup_single_state_value(
         self,
         state: State,
