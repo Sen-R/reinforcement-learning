@@ -1,14 +1,5 @@
-from typing import (
-    NewType,
-    Tuple,
-    Sequence,
-    Callable,
-    Mapping,
-    Optional,
-)
+from typing import NewType, Tuple, Sequence, Mapping
 from itertools import product
-import numpy as np
-from numpy.typing import NDArray
 from .base import FiniteMDP
 
 
@@ -68,67 +59,3 @@ class GridWorld(FiniteMDP[Action, State]):
 
     def state_is_valid(self, state):
         return min(state) >= 0 and max(state) < self.size
-
-    def backup_single_state_value(
-        self,
-        state: State,
-        v: Mapping[State, float],
-        gamma: float,
-        pi: Callable[[Action, State], float],
-    ) -> float:
-        backed_up_v = 0.0
-        for a in self.actions:
-            for ns, r, p_ns in self.next_states_and_rewards(state, a):
-                backed_up_v += pi(a, state) * p_ns * (r + gamma * v[ns])
-        return backed_up_v
-
-    def backup_single_state_optimal_action(
-        self, state: State, v: Mapping[State, float], gamma: float
-    ) -> Tuple[Action, float]:
-        best_action_and_value: Optional[Tuple[Action, float]] = None
-        for a in self.actions:
-            this_action_value = sum(
-                p_ns * (r + gamma * v[ns])
-                for ns, r, p_ns in self.next_states_and_rewards(state, a)
-            )
-            if (
-                best_action_and_value is None
-                or this_action_value > best_action_and_value[1]
-            ):
-                best_action_and_value = (a, this_action_value)
-        assert best_action_and_value is not None
-        return best_action_and_value
-
-    def backup_policy_values_operator(
-        self, gamma: float, pi: Callable[[Action, State], float]
-    ) -> Tuple[NDArray[np.float_], NDArray[np.float_]]:
-        expected_rewards_vector = np.zeros(len(self.states))
-        discounted_transitions_matrix = np.zeros(
-            (len(self.states), len(self.states))
-        )
-
-        for s in self.states:
-            for a in self.actions:
-                p_a = pi(a, s)
-                for ns, r, p_ns in self.next_states_and_rewards(s, a):
-                    expected_rewards_vector[self.s2i(s)] += p_a * p_ns * r
-                    discounted_transitions_matrix[
-                        self.s2i(s), self.s2i(ns)
-                    ] += (gamma * p_a * p_ns)
-
-        return discounted_transitions_matrix, expected_rewards_vector
-
-    def backup_optimal_values(
-        self, initial_values: NDArray[np.float_], gamma: float
-    ) -> NDArray[np.float_]:
-        initial_values = np.array(initial_values)
-        updated_values = np.zeros(len(self.states))
-        for s in self.states:
-            updated_values[self.s2i(s)] = max(
-                sum(
-                    p_ns * (r + gamma * initial_values[self.s2i(ns)])
-                    for ns, r, p_ns in self.next_states_and_rewards(s, a)
-                )
-                for a in self.actions
-            )
-        return updated_values

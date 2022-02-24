@@ -1,4 +1,4 @@
-from typing import Generic, Sequence, Tuple, Callable, Mapping
+from typing import Generic, Sequence, Tuple, Callable, Mapping, Optional
 from numpy.typing import NDArray
 import numpy as np
 from ._types import State, Action
@@ -50,7 +50,6 @@ class FiniteMDP(ABC, Generic[Action, State]):
           (`p_ns`)."""
         pass
 
-    @abstractmethod
     def backup_single_state_value(
         self,
         state: State,
@@ -71,9 +70,12 @@ class FiniteMDP(ABC, Generic[Action, State]):
         Returns:
           updated value estimate for `state`
         """
-        pass
+        backed_up_v = 0.0
+        for a in self.actions:
+            for ns, r, p_ns in self.next_states_and_rewards(state, a):
+                backed_up_v += pi(a, state) * p_ns * (r + gamma * v[ns])
+        return backed_up_v
 
-    @abstractmethod
     def backup_single_state_optimal_action(
         self,
         state: State,
@@ -93,9 +95,20 @@ class FiniteMDP(ABC, Generic[Action, State]):
           action: maximising action, chosen arbitrarily if there are ties
           action_value: corresponding maximising action value
         """
-        pass
+        best_action_and_value: Optional[Tuple[Action, float]] = None
+        for a in self.actions:
+            this_action_value = sum(
+                p_ns * (r + gamma * v[ns])
+                for ns, r, p_ns in self.next_states_and_rewards(state, a)
+            )
+            if (
+                best_action_and_value is None
+                or this_action_value > best_action_and_value[1]
+            ):
+                best_action_and_value = (a, this_action_value)
+        assert best_action_and_value is not None
+        return best_action_and_value
 
-    @abstractmethod
     def backup_policy_values_operator(
         self,
         gamma: float,
@@ -116,9 +129,22 @@ class FiniteMDP(ABC, Generic[Action, State]):
             reward given state `s` (marginalising over all possible actions
             and transitioned states)
         """
-        pass
+        expected_rewards_vector = np.zeros(len(self.states))
+        discounted_transitions_matrix = np.zeros(
+            (len(self.states), len(self.states))
+        )
 
-    @abstractmethod
+        for s in self.states:
+            for a in self.actions:
+                p_a = pi(a, s)
+                for ns, r, p_ns in self.next_states_and_rewards(s, a):
+                    expected_rewards_vector[self.s2i(s)] += p_a * p_ns * r
+                    discounted_transitions_matrix[
+                        self.s2i(s), self.s2i(ns)
+                    ] += (gamma * p_a * p_ns)
+
+        return discounted_transitions_matrix, expected_rewards_vector
+
     def backup_optimal_values(
         self, initial_values: NDArray[np.float_], gamma: float
     ) -> NDArray[np.float_]:
@@ -132,4 +158,14 @@ class FiniteMDP(ABC, Generic[Action, State]):
         Returns:
           array of updated values
         """
-        pass
+        initial_values = np.array(initial_values)
+        updated_values = np.zeros(len(self.states))
+        for s in self.states:
+            updated_values[self.s2i(s)] = max(
+                sum(
+                    p_ns * (r + gamma * initial_values[self.s2i(ns)])
+                    for ns, r, p_ns in self.next_states_and_rewards(s, a)
+                )
+                for a in self.actions
+            )
+        return updated_values
