@@ -49,9 +49,9 @@ class TestGridWorld:
 
         # Perform a backup update on a single state with arbitrary random
         # policy and check it meets expectations
-        fixed_pi = {"n": 0.85, "e": 0.05, "w": 0.05, "s": 0.05}
+        fixed_pi = (("n", 0.85), ("e", 0.05), ("w", 0.05), ("s", 0.05))
         updated_v = gridworld.backup_single_state_value(
-            (4, 0), v, gamma=0.9, pi=lambda a, s: fixed_pi[a]
+            (4, 0), v, gamma=0.9, pi=lambda s: fixed_pi
         )
         assert gridworld.s2i((4, 0)) == 20  # sanity check
         expected_v = (
@@ -78,7 +78,10 @@ class TestGridWorld:
         assert action_value == 0.9 * 21  # corresponding action value
 
     def test_backup_policy_values_operator(self, gridworld) -> None:
-        A, b = gridworld.backup_policy_values_operator(0.9, lambda a, s: 0.25)
+        A, b = gridworld.backup_policy_values_operator(
+            0.9,
+            lambda s: [(a, 0.25) for a in gridworld.actions],
+        )
         assert b[gridworld.s2i((1, 2))] == 0
         assert b[gridworld.s2i((2, 4))] == -0.25
         assert b[gridworld.s2i((0, 3))] == 5

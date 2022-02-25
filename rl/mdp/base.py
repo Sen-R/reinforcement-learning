@@ -1,11 +1,24 @@
 from abc import ABC, abstractmethod
-from typing import Generic, Sequence, Tuple, Callable, Mapping, Optional
+from typing import (
+    Generic,
+    Sequence,
+    Tuple,
+    Mapping,
+    Optional,
+    Collection,
+)
 from numpy.typing import NDArray
 import numpy as np
-from ._types import State, Action
+from ._types import (
+    State,
+    Action,
+    Reward,
+    Policy,
+    NextStateRewardAndProbability,
+)
 
 
-class FiniteMDP(ABC, Generic[Action, State]):
+class FiniteMDP(ABC, Generic[State, Action]):
     """Abstract base class for finite Markov Decision Processes."""
 
     @property
@@ -22,24 +35,22 @@ class FiniteMDP(ABC, Generic[Action, State]):
 
     @property
     @abstractmethod
-    def rewards(self) -> Sequence[float]:
-        """Returns list of all possible (expected) rewards."""
+    def rewards(self) -> Collection[Reward]:
+        """Returns collection of all possible (expected) rewards."""
         pass
 
-    @abstractmethod
     def s2i(self, state) -> int:
         """Converts a state to its corresponding index in `self.states`."""
-        pass
+        return self.states.index(state)
 
-    @abstractmethod
     def i2s(self, index) -> State:
         """Converts a state index to its corresponding state."""
-        pass
+        return self.states[index]
 
     @abstractmethod
     def next_states_and_rewards(
         self, state: State, action: Action
-    ) -> Sequence[Tuple[State, float, float]]:
+    ) -> Collection[NextStateRewardAndProbability[State]]:
         """Returns the next states, expected rewards and corresponding
         probabilities after taking `action` in `state`.
 
@@ -55,7 +66,7 @@ class FiniteMDP(ABC, Generic[Action, State]):
         state: State,
         v: Mapping[State, float],
         gamma: float,
-        pi: Callable[[Action, State], float],
+        pi: Policy[State, Action],
     ) -> float:
         """Updates estimated value of `state` from estimated value of
         successor states under policy `pi`.
@@ -71,9 +82,9 @@ class FiniteMDP(ABC, Generic[Action, State]):
           updated value estimate for `state`
         """
         backed_up_v = 0.0
-        for a in self.actions:
+        for a, p_a in pi(state):
             for ns, r, p_ns in self.next_states_and_rewards(state, a):
-                backed_up_v += pi(a, state) * p_ns * (r + gamma * v[ns])
+                backed_up_v += p_a * p_ns * (r + gamma * v[ns])
         return backed_up_v
 
     def backup_single_state_optimal_action(
@@ -112,7 +123,7 @@ class FiniteMDP(ABC, Generic[Action, State]):
     def backup_policy_values_operator(
         self,
         gamma: float,
-        pi: Callable[[Action, State], float],
+        pi: Policy[State, Action],
     ) -> Tuple[NDArray[np.float_], NDArray[np.float_]]:
         """Returns the matrix and vector components of the Bellman policy
         evaluation operator for this MDP.
@@ -135,8 +146,7 @@ class FiniteMDP(ABC, Generic[Action, State]):
         )
 
         for s in self.states:
-            for a in self.actions:
-                p_a = pi(a, s)
+            for a, p_a in pi(s):
                 for ns, r, p_ns in self.next_states_and_rewards(s, a):
                     expected_rewards_vector[self.s2i(s)] += p_a * p_ns * r
                     discounted_transitions_matrix[

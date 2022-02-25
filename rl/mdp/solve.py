@@ -1,15 +1,15 @@
-from typing import Callable, Dict, Optional, MutableMapping
+from typing import Dict, Optional, MutableMapping
 from warnings import warn
 import numpy as np
 from scipy import optimize  # type: ignore
-from ._types import State, Action
+from ._types import State, Action, Policy
 from .base import FiniteMDP
 
 
 def exact_state_values(
-    mdp: FiniteMDP[Action, State],
+    mdp: FiniteMDP[State, Action],
     gamma: float,
-    pi: Callable[[Action, State], float],
+    pi: Policy[State, Action],
 ) -> Dict[State, float]:
     """Returns state values for given policy.
 
@@ -31,7 +31,7 @@ def exact_state_values(
 
 
 def exact_optimum_state_values(
-    mdp: FiniteMDP[Action, State], gamma: float, tol: Optional[float] = None
+    mdp: FiniteMDP[State, Action], gamma: float, tol: Optional[float] = None
 ) -> Dict[State, float]:
     """Returns state values for an optimal policy for the given MDP.
 
@@ -62,9 +62,9 @@ def exact_optimum_state_values(
 
 def iterative_policy_evaluation(
     v: MutableMapping[State, float],
-    mdp: FiniteMDP[Action, State],
+    mdp: FiniteMDP[State, Action],
     gamma: float,
-    pi: Callable[[Action, State], float],
+    pi: Policy[State, Action],
     tol: Optional[float],
     maxiter: int = 100,
 ) -> int:
@@ -111,7 +111,7 @@ def iterative_policy_evaluation(
 def policy_iteration(
     v: MutableMapping[State, float],
     pi: MutableMapping[State, Action],
-    mdp: FiniteMDP[Action, State],
+    mdp: FiniteMDP[State, Action],
     gamma: float,
     tol: float,
     maxiter: int = 100,
@@ -121,7 +121,7 @@ def policy_iteration(
 
     Args:
       v: mapping from states to state values for current policy
-      pi: mapping from states to actions, encoding a deterministic policy
+      pi: initial (deterministic) policy, mapping states to actions
       mdp: MDP for which optimal policy is being searched
       gamma: discount factor
       tol: tolerance for embedded policy evaluation component of each policy
@@ -141,7 +141,7 @@ def policy_iteration(
         if policy_stable:
             break
         iterative_policy_evaluation(
-            v, mdp, gamma, lambda a, s: (a == pi[s]), tol
+            v, mdp, gamma, (lambda s: ((pi[s], 1.0),)), tol
         )
     else:
         # maxiter reached but policy not yet stable, so warn
@@ -151,7 +151,7 @@ def policy_iteration(
 
 def value_iteration(
     v: MutableMapping[State, float],
-    mdp: FiniteMDP[Action, State],
+    mdp: FiniteMDP[State, Action],
     gamma: float,
     tol: float,
     maxiter: int = 100,
