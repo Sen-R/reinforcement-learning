@@ -65,6 +65,7 @@ def pi() -> Policy[TState, TAction]:
     pi_dict = {
         "A": (("L", 0.6), ("R", 0.4)),
         "B": (("L", 1.0),),
+        "C": (),
     }
     return lambda s: pi_dict[s]
 
@@ -83,6 +84,7 @@ class TestFiniteMDP:
         [
             ("A", 0.55 * (1.0 + 0.0) + 0.45 * (-1.0 + 0.9 * 1.0)),
             ("B", 0.75 * (-1.0 + 0.9 * 3.0) + 0.25 * 1.0),
+            ("C", 0.0),
         ],
     )
     def test_backup_single_state_value(
