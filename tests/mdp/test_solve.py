@@ -128,7 +128,7 @@ class TestValueIteration:
         assert round(v_star[GWState((4, 3))], 1) == 13.0
         assert round(v_star[GWState((0, 1))], 1) == 24.4
 
-    def test_maxiter_terminates_iteration(self, gridworld) -> None:
+    def test_maxiter_terminates_iteration(self, gridworld: GridWorld) -> None:
         v_star = {s: 0.0 for s in gridworld.states}
         with pytest.warns(UserWarning):
             niter = value_iteration(v_star, gridworld, 0.9, 1e-14, maxiter=2)
