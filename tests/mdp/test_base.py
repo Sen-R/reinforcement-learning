@@ -1,6 +1,7 @@
 from typing import List, Dict, Set, Tuple, Collection
 import pytest
 from numpy.testing import assert_almost_equal
+import numpy as np
 from rl.mdp._types import TransitionsMapping, Policy
 from rl.mdp.base import FiniteMDP
 
@@ -65,7 +66,7 @@ def pi() -> Policy[TState, TAction]:
     pi_dict = {
         "A": (("L", 0.6), ("R", 0.4)),
         "B": (("L", 1.0),),
-        "C": (),
+        "C": (("L", 1.0),),
     }
     return lambda s: pi_dict[s]
 
@@ -99,14 +100,50 @@ class TestFiniteMDP:
         updated_v = test_mdp.backup_single_state_value(state, v, gamma, pi)
         assert_almost_equal(updated_v, expected_v)
 
-    @pytest.mark.xfail
-    def test_backup_single_state_optimal_action(self) -> None:
-        raise NotImplementedError
+    @pytest.mark.parametrize(
+        "state, expected_action, expected_action_value",
+        [
+            (TState("A"), TAction("L"), 0.725),
+            (TState("B"), TAction("L"), 1.525),
+        ],
+    )
+    def test_backup_single_state_optimal_action(
+        self,
+        test_mdp: SimpleMDP,
+        v: Dict[TState, float],
+        gamma: float,
+        state: TState,
+        expected_action: TAction,
+        expected_action_value: float,
+    ) -> None:
+        action, action_value = test_mdp.backup_single_state_optimal_action(
+            state, v, gamma
+        )
+        assert action == expected_action
+        assert_almost_equal(action_value, expected_action_value)
 
-    @pytest.mark.xfail
-    def test_backup_policy_values_operator(self) -> None:
-        raise NotImplementedError
+    def test_backup_policy_values_operator(
+        self,
+        test_mdp: SimpleMDP,
+        gamma: float,
+        pi: Policy[TState, TAction],
+    ) -> None:
+        A, b = test_mdp.backup_policy_values_operator(gamma, pi)
 
-    @pytest.mark.xfail
-    def test_backup_optimal_values(self) -> None:
-        raise NotImplementedError
+        # A should be gamma times the transition matrix
+        expected_A = gamma * np.array(
+            [[0.0, 0.45, 0.55], [0.75, 0.0, 0.25], [0.0, 0.0, 1.0]]
+        )
+        assert_almost_equal(A, expected_A)
+
+        # b should be a vector of expected reward per starting state
+        expected_b = np.array([0.1, -0.5, 0.0])
+        assert_almost_equal(b, expected_b)
+
+    def test_backup_optimal_values(
+        self, test_mdp: SimpleMDP, v: Dict[TState, float], gamma: float
+    ) -> None:
+        initial_v_array = np.array(list(v.values()))
+        updated_v = test_mdp.backup_optimal_values(initial_v_array, gamma)
+        expected_v = [0.725, 1.525, 0.0]
+        assert_almost_equal(updated_v, expected_v)
