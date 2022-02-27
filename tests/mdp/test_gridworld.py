@@ -134,3 +134,25 @@ class TestGridWorld:
     def test_terminal_state_set_to_none_means_no_terminal_states(self) -> None:
         gridworld = GridWorld(2)
         assert len(gridworld.terminal_states) == 0
+
+    def test_custom_move_reward(self) -> None:
+        gridworld = GridWorld(2, default_move_reward=3.0)
+        nsar = gridworld.next_states_and_rewards(
+            GWState((1, 0)), GWAction("e")
+        )
+        assert len(nsar) == 1
+        ns, r, p_nw = nsar[0]
+        assert ns == GWState((1, 1))
+        assert r == 3.0
+        assert p_nw == 1.0
+
+    def test_custom_invalid_action_reward(self) -> None:
+        gridworld = GridWorld(2, invalid_action_reward=5.0)
+        nsar = gridworld.next_states_and_rewards(
+            GWState((1, 0)), GWAction("w")
+        )
+        assert len(nsar) == 1
+        ns, r, p_nw = nsar[0]
+        assert ns == GWState((1, 0))
+        assert r == 5.0
+        assert p_nw == 1.0

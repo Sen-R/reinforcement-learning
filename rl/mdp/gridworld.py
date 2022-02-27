@@ -25,6 +25,8 @@ class GridWorld(FiniteMDP[GWState, GWAction]):
         size: int,
         wormholes: Optional[Mapping[GWState, Tuple[GWState, Reward]]] = None,
         terminal_states: Optional[Iterable[GWState]] = None,
+        default_move_reward: float = 0.0,
+        invalid_action_reward: float = -1.0,
     ):
         self.size = size
         self.wormholes = wormholes if wormholes is not None else {}
@@ -40,6 +42,8 @@ class GridWorld(FiniteMDP[GWState, GWAction]):
             "w": (0, -1),
             "s": (1, 0),
         }
+        self.default_move_reward = default_move_reward
+        self.invalid_action_reward = invalid_action_reward
 
     @property
     def states(self) -> Sequence[GWState]:
@@ -70,9 +74,9 @@ class GridWorld(FiniteMDP[GWState, GWAction]):
             move = self.actions_to_moves[action]
             next_state = GWState((state[0] + move[0], state[1] + move[1]))
             if self.state_is_valid(next_state):
-                return ((next_state, 0.0, 1.0),)
+                return ((next_state, self.default_move_reward, 1.0),)
             else:
-                return ((state, -1.0, 1.0),)
+                return ((state, self.invalid_action_reward, 1.0),)
 
     def state_is_valid(self, state: GWState) -> bool:
         return min(state) >= 0 and max(state) < self.size
