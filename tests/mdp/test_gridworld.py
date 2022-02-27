@@ -115,3 +115,22 @@ class TestGridWorld:
         # Check values match manual calculation
         assert backed_up_values[7] == 0.9 * 12
         assert backed_up_values[1] == 10 + 0.9 * 21
+
+    def test_terminal_state_functionality(self) -> None:
+        gridworld = GridWorld(2, terminal_states=(GWState((1, 0)),))
+        nsar = gridworld.next_states_and_rewards(
+            GWState((1, 0)), GWAction("n")
+        )
+        assert len(nsar) == 1
+        ns, r, p_nw = nsar[0]
+        assert ns == GWState((1, 0))
+        assert r == 0.0
+        assert p_nw == 1.0
+
+    def test_wormholes_set_to_none_means_no_wormholes(self) -> None:
+        gridworld = GridWorld(2)
+        assert len(gridworld.wormholes) == 0
+
+    def test_terminal_state_set_to_none_means_no_terminal_states(self) -> None:
+        gridworld = GridWorld(2)
+        assert len(gridworld.terminal_states) == 0

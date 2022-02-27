@@ -1,4 +1,4 @@
-from typing import NewType, Tuple, Sequence, Mapping
+from typing import NewType, Tuple, Sequence, Mapping, Optional, Iterable
 from itertools import product
 from ._types import (
     Policy,
@@ -21,10 +21,16 @@ class GridWorld(FiniteMDP[GWState, GWAction]):
     Chapter 3 of Sutton, Barto (2018)."""
 
     def __init__(
-        self, size: int, wormholes: Mapping[GWState, Tuple[GWState, Reward]]
+        self,
+        size: int,
+        wormholes: Optional[Mapping[GWState, Tuple[GWState, Reward]]] = None,
+        terminal_states: Optional[Iterable[GWState]] = None,
     ):
         self.size = size
-        self.wormholes = wormholes
+        self.wormholes = wormholes if wormholes is not None else {}
+        self.terminal_states = (
+            set(terminal_states) if terminal_states is not None else {}
+        )
         self._states = [
             GWState((i, j)) for i, j in product(range(size), range(size))
         ]
@@ -56,7 +62,9 @@ class GridWorld(FiniteMDP[GWState, GWAction]):
     def next_states_and_rewards(
         self, state: GWState, action: GWAction
     ) -> Tuple[NextStateRewardAndProbability]:
-        if state in self.wormholes:
+        if state in self.terminal_states:
+            return ((state, 0.0, 1.0),)
+        elif state in self.wormholes:
             return ((*self.wormholes[state], 1.0),)
         else:
             move = self.actions_to_moves[action]
