@@ -49,13 +49,9 @@ class GridWorld(FiniteMDP[GWState, GWAction]):
     def states(self) -> Sequence[GWState]:
         return self._states
 
-    @property
-    def actions(self) -> Sequence[GWAction]:
+    def actions(self, state: GWState) -> Sequence[GWAction]:
+        # This MDP has same actions allowed in any state
         return list(GWAction(a) for a in self.actions_to_moves)
-
-    @property
-    def rewards(self) -> Sequence[Reward]:
-        return [0.0, -1.0] + [w[1] for w in self.wormholes.values()]
 
     def s2i(self, state: GWState) -> int:
         return state[0] * self.size + state[1]

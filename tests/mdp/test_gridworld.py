@@ -35,9 +35,6 @@ class TestGridWorld:
             (expected_next_state, expected_reward, 1.0),
         )
 
-    def test_rewards_property(self, gridworld: GridWorld) -> None:
-        assert sorted(gridworld.rewards) == [-1, 0, 5, 10]
-
     @pytest.mark.parametrize(
         "state", [GWState((3, 0)), GWState((1, 4)), GWState((0, 0))]
     )
@@ -92,7 +89,7 @@ class TestGridWorld:
     def test_backup_policy_values_operator(self, gridworld: GridWorld) -> None:
         A, b = gridworld.backup_policy_values_operator(
             0.9,
-            lambda s: [(a, 0.25) for a in gridworld.actions],
+            lambda s: [(a, 0.25) for a in gridworld.actions(s)],
         )
         assert b[gridworld.s2i(GWState((1, 2)))] == 0
         assert b[gridworld.s2i(GWState((2, 4)))] == -0.25

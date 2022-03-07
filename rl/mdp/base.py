@@ -12,7 +12,6 @@ import numpy as np
 from ._types import (
     State,
     Action,
-    Reward,
     Policy,
     NextStateRewardAndProbability,
 )
@@ -27,16 +26,9 @@ class FiniteMDP(ABC, Generic[State, Action]):
         """Returns list of possible states."""
         pass
 
-    @property
     @abstractmethod
-    def actions(self) -> Sequence[Action]:
+    def actions(self, state: State) -> Sequence[Action]:
         """Returns list of all possible actions."""
-        pass
-
-    @property
-    @abstractmethod
-    def rewards(self) -> Collection[Reward]:
-        """Returns collection of all possible (expected) rewards."""
         pass
 
     def s2i(self, state) -> int:
@@ -107,7 +99,7 @@ class FiniteMDP(ABC, Generic[State, Action]):
           action_value: corresponding maximising action value
         """
         best_action_and_value: Optional[Tuple[Action, float]] = None
-        for a in self.actions:
+        for a in self.actions(state):
             this_action_value = sum(
                 p_ns * (r + gamma * v[ns])
                 for ns, r, p_ns in self.next_states_and_rewards(state, a)
@@ -176,6 +168,6 @@ class FiniteMDP(ABC, Generic[State, Action]):
                     p_ns * (r + gamma * initial_values[self.s2i(ns)])
                     for ns, r, p_ns in self.next_states_and_rewards(s, a)
                 )
-                for a in self.actions
+                for a in self.actions(s)
             )
         return updated_values

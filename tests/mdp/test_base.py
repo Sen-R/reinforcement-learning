@@ -1,4 +1,4 @@
-from typing import List, Dict, Set, Tuple, Collection
+from typing import List, Dict, Tuple, Collection
 import pytest
 from numpy.testing import assert_almost_equal
 import numpy as np
@@ -13,7 +13,6 @@ TAction = str
 class SimpleMDP(FiniteMDP[TState, TAction]):
     _states = ["A", "B", "C"]
     _actions = ["R", "L"]
-    _rewards = {0.0, 1.0, -1.0}
     _transitions: TransitionsMapping[TState, TAction] = {
         "A": {
             "R": (("B", -1.0, 0.75), ("C", 1.0, 0.25)),
@@ -30,13 +29,8 @@ class SimpleMDP(FiniteMDP[TState, TAction]):
     def states(self) -> List[TState]:
         return self._states
 
-    @property
-    def actions(self) -> List[TAction]:
+    def actions(self, state: TState) -> List[TAction]:
         return self._actions
-
-    @property
-    def rewards(self) -> Set[float]:
-        return self._rewards
 
     def next_states_and_rewards(
         self, state: TState, action: TAction
