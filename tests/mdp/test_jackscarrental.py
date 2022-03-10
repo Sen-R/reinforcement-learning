@@ -7,8 +7,6 @@ from rl.mdp.jackscarrental import (
     CarCounts,
     MoveCars,
     counts_after_moving_cars,
-    branch_transition_prob_and_exp_rentals,
-    evening_states_and_exp_rentals,
 )
 
 
@@ -62,11 +60,8 @@ class TestJacksCarRental:
         state = CarCounts((1, 2))  # arbitrary state
         action = MoveCars(-1)  # arbitrary action
         morning_counts = CarCounts((2, 1))  # after applying action
-        evening_counts_and_rentals = evening_states_and_exp_rentals(
-            morning_counts,
-            capacity=2,
-            exp_demand_per_location=(1, 2),
-            exp_returns_per_location=(1, 1),
+        evening_counts_and_rentals = jcr.evening_states_and_exp_rentals(
+            morning_counts
         )
         exp_ns_rs_and_ps = [
             (ns, r * 10.0 - 2.0, p) for ns, r, p in evening_counts_and_rentals
@@ -79,6 +74,57 @@ class TestJacksCarRental:
             print(act_ns)
             assert_almost_equal(act_r, exp_r)
             assert_almost_equal(act_p, exp_p)
+
+    def test_evening_states_and_exp_rentals(self, jcr: JacksCarRental) -> None:
+        morning_counts = CarCounts((1, 2))
+        ns_rs_and_ps = jcr.evening_states_and_exp_rentals(morning_counts)
+
+        # All states are possible next states, let's check this first
+        assert set(ns for ns, _, _ in ns_rs_and_ps) == set(jcr.states)
+
+        # Probabilities should sum to one
+        assert_almost_equal(sum(p for _, _, p in ns_rs_and_ps), 1.0)
+
+    @pytest.mark.parametrize(
+        "cars_morning,cars_evening,rs_and_ps",
+        [
+            (
+                1,
+                1,
+                (
+                    # same transition but for branch 1
+                    (0, p_rent[1].pmf(0) * p_ret[1].pmf(0)),
+                    (1, (1.0 - p_rent[1].cdf(0)) * p_ret[1].pmf(1)),
+                ),
+            ),
+            (
+                2,
+                2,
+                (
+                    # logic different if branch ends up full
+                    (0, p_rent[1].pmf(0)),
+                    (1, p_rent[1].pmf(1) * (1.0 - p_ret[1].cdf(0))),
+                    (2, (1.0 - p_rent[1].cdf(1)) * (1.0 - p_ret[1].cdf(1))),
+                ),
+            ),
+        ],
+    )
+    def test_branch_transition_prob_and_exp_rentals(
+        self,
+        jcr: JacksCarRental,
+        cars_morning: int,
+        cars_evening: int,
+        rs_and_ps: Collection[Tuple[int, float]],
+    ) -> None:
+        expected_p = sum(r_and_p[1] for r_and_p in rs_and_ps)
+        expected_r = (
+            sum(r_and_p[0] * r_and_p[1] for r_and_p in rs_and_ps) / expected_p
+        )
+        actual_p, actual_r = jcr.branch_transition_prob_and_exp_rentals(
+            1, cars_morning=cars_morning, cars_evening=cars_evening
+        )
+        assert_almost_equal(actual_p, expected_p)
+        assert_almost_equal(actual_r, expected_r)
 
 
 @pytest.mark.parametrize(
@@ -94,63 +140,3 @@ def test_counts_after_moving_cars(
     counts_after_move: CarCounts,
 ) -> None:
     assert counts_after_moving_cars(state, action) == counts_after_move
-
-
-def test_evening_states_and_exp_rentals(jcr: JacksCarRental) -> None:
-    morning_counts = CarCounts((1, 2))
-    ns_rs_and_ps = evening_states_and_exp_rentals(
-        morning_counts,
-        capacity=2,
-        exp_demand_per_location=(1, 2),
-        exp_returns_per_location=(1, 1),
-    )
-
-    # All states are possible next states, let's check this first
-    assert set(ns for ns, _, _ in ns_rs_and_ps) == set(jcr.states)
-
-    # Probabilities should sum to one
-    assert_almost_equal(sum(p for _, _, p in ns_rs_and_ps), 1.0)
-
-
-@pytest.mark.parametrize(
-    "cars_morning,cars_evening,rs_and_ps",
-    [
-        (
-            1,
-            1,
-            (
-                # same transition but for branch 1
-                (0, p_rent[1].pmf(0) * p_ret[1].pmf(0)),
-                (1, (1.0 - p_rent[1].cdf(0)) * p_ret[1].pmf(1)),
-            ),
-        ),
-        (
-            2,
-            2,
-            (
-                # logic different if branch ends up full
-                (0, p_rent[1].pmf(0)),
-                (1, p_rent[1].pmf(1) * (1.0 - p_ret[1].cdf(0))),
-                (2, (1.0 - p_rent[1].cdf(1)) * (1.0 - p_ret[1].cdf(1))),
-            ),
-        ),
-    ],
-)
-def test_branch_transition_prob_and_exp_rentals(
-    cars_morning: int,
-    cars_evening: int,
-    rs_and_ps: Collection[Tuple[int, float]],
-) -> None:
-    expected_p = sum(r_and_p[1] for r_and_p in rs_and_ps)
-    expected_r = (
-        sum(r_and_p[0] * r_and_p[1] for r_and_p in rs_and_ps) / expected_p
-    )
-    actual_p, actual_r = branch_transition_prob_and_exp_rentals(
-        cars_morning=cars_morning,
-        cars_evening=cars_evening,
-        capacity=2,
-        exp_demand=2,
-        exp_returns=1,
-    )
-    assert_almost_equal(actual_p, expected_p)
-    assert_almost_equal(actual_r, expected_r)
