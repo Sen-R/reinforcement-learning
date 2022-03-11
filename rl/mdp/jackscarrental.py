@@ -200,10 +200,23 @@ def counts_after_moving_cars(
 
 
 def poisson_table(max_k: int, mu: float) -> NDArray[np.float_]:
-    return poisson.pmf(range(max_k + 1), mu=mu)
-    # table = np.zeros(max_k + 1)
-    # table[:max_k] = poisson.pmf(range(max_k), mu=mu)
-    # assert table[-1] == 0.0
-    # table[-1] = 1.0 - poisson.cdf(max_k - 1, mu=mu)
-    # np.testing.assert_almost_equal(np.sum(table), 1.0)
-    # return table
+    """Returns table of Poisson probabilities up to `k >= max_k`.
+
+    Suppose K is Poisson distributed with mean `mu`. Then this function
+    returns an array of length `max_k + 1`, where the first `max_k` entries
+    correspond to the probabilities `P(K=0), P(K=1), ..., P(K=max_k-1)` while
+    the final entry in the table corresponds to `P(K>=max_k)`.
+
+    Note, this means that the sum of the entries of the array should be 1.
+
+    Args:
+      max_k: the ceiling at which `K` is capped
+      mu: the expected value of the (uncapped) Poisson distribution
+
+    Returns:
+      table: array of length `max_k + 1` with entries as described above
+    """
+    table = np.zeros(max_k + 1)
+    table[:max_k] = poisson.pmf(range(max_k), mu=mu)
+    table[-1] = 1.0 - poisson.cdf(max_k - 1, mu=mu)
+    return table

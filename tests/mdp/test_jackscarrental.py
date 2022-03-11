@@ -7,6 +7,7 @@ from rl.mdp.jackscarrental import (
     CarCounts,
     MoveCars,
     counts_after_moving_cars,
+    poisson_table,
 )
 
 
@@ -152,3 +153,10 @@ def test_counts_after_moving_cars(
     counts_after_move: CarCounts,
 ) -> None:
     assert counts_after_moving_cars(state, action) == counts_after_move
+
+
+def test_poisson_table() -> None:
+    table = poisson_table(2, mu=2.0)
+    assert_almost_equal(table.sum(), 1.0)
+    desired = [0.13533528, 0.27067057, 0.59399415]
+    assert_almost_equal(table, desired)
