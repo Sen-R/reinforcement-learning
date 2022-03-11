@@ -1,4 +1,4 @@
-from typing import Tuple, Collection
+from typing import Tuple, Collection, Iterable
 import pytest
 from numpy.testing import assert_almost_equal
 from scipy.stats import poisson  # type: ignore
@@ -48,11 +48,23 @@ class TestJacksCarRental:
         actual_states = set(jcr.states)
         assert expected_states == actual_states
 
-    def test_actions_property(self, jcr: JacksCarRental) -> None:
+    @pytest.mark.parametrize(
+        "state,exp_range",
+        [
+            (CarCounts((1, 2)), range(-1, 1)),
+            (CarCounts((2, 0)), range(0, 3)),
+            (CarCounts((1, 1)), range(-1, 2)),
+            (CarCounts((0, 2)), range(-2, 1)),
+            (CarCounts((0, 0)), range(0, 1)),
+            (CarCounts((2, 2)), range(0, 1)),
+        ],
+    )
+    def test_actions_property(
+        self, jcr: JacksCarRental, state: CarCounts, exp_range: Iterable[int]
+    ) -> None:
         """Actions should be a (possibly negative) int, representing
         the net movement of cars from location 1 to location 2 overnight."""
-        state = CarCounts((1, 2))  # arbitrary state
-        expected_actions = set(MoveCars(m) for m in range(-2, 2))
+        expected_actions = set(MoveCars(m) for m in exp_range)
         actual_actions = set(jcr.actions(state))
         assert expected_actions == actual_actions
 

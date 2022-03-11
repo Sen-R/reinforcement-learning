@@ -62,7 +62,7 @@ class JacksCarRental(FiniteMDP[CarCounts, MoveCars]):
         ]
 
     def actions(self, state: CarCounts) -> List[MoveCars]:
-        min_move = - min(self.capacity - state[0], state[1])
+        min_move = -min(self.capacity - state[0], state[1])
         max_move = min(self.capacity - state[1], state[0])
         return [MoveCars(m) for m in range(min_move, max_move + 1)]
 
