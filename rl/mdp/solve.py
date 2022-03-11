@@ -172,6 +172,7 @@ def value_iteration(
       niter: number of sweeps of the state space that took place
     """
     for niter in range(1, maxiter + 1):
+        print(niter)
         delta_v = 0.0
         for s in mdp.states:
             v_old = v[s]

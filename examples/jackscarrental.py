@@ -14,5 +14,5 @@ jcr = JacksCarRental(
 
 if __name__ == "__main__":
     v = {s: 0.0 for s in jcr.states}
-    value_iteration(v, jcr, 0.9, 1.0, maxiter=1)
+    value_iteration(v, jcr, 0.9, 1.0)
     print(v)

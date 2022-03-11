@@ -3,8 +3,10 @@
 This problem is described in chapter 4 of the textbook Sutton, Barto (2018).
 """
 
-from typing import NewType, Tuple, List
+from typing import NewType, Tuple, List, Dict
 from itertools import product
+from numpy.typing import NDArray
+import numpy as np
 from scipy.stats import poisson  # type: ignore
 from .base import FiniteMDP
 from ._types import NextStateRewardAndProbability
@@ -40,6 +42,15 @@ class JacksCarRental(FiniteMDP[CarCounts, MoveCars]):
         self.exp_returns_per_location = exp_returns_per_location
         self.reward_for_rental = reward_for_rental
         self.reward_per_car_for_moving_cars = reward_per_car_for_moving_cars
+        self.p_hire = (
+            poisson_table(self.capacity, exp_demand_per_location[0]),
+            poisson_table(self.capacity, exp_demand_per_location[1]),
+        )
+        self.p_ret = (
+            poisson_table(self.capacity, exp_returns_per_location[0]),
+            poisson_table(self.capacity, exp_returns_per_location[1]),
+        )
+        self._cache: Dict[CarCounts, List[Tuple[CarCounts, float, float]]] = {}
 
     @property
     def states(self) -> List[CarCounts]:
@@ -51,12 +62,16 @@ class JacksCarRental(FiniteMDP[CarCounts, MoveCars]):
         ]
 
     def actions(self, state: CarCounts) -> List[MoveCars]:
-        return [MoveCars(m) for m in range(-state[1], state[0] + 1)]
+        min_move = - min(self.capacity - state[0], state[1])
+        max_move = min(self.capacity - state[1], state[0])
+        return [MoveCars(m) for m in range(min_move, max_move + 1)]
 
     def next_states_and_rewards(
         self, state: CarCounts, action: MoveCars
     ) -> List[NextStateRewardAndProbability[CarCounts]]:
         next_morning_counts = counts_after_moving_cars(state, action)
+        assert max(next_morning_counts) <= self.capacity, (state, action)
+        assert min(next_morning_counts) >= 0, (state, action)
         next_evening_counts_and_rentals = self.evening_states_and_exp_rentals(
             next_morning_counts
         )
@@ -89,21 +104,22 @@ class JacksCarRental(FiniteMDP[CarCounts, MoveCars]):
           conditional on `morning_counts` cars being present at the start of
           the day.
         """
-        result: List[Tuple[CarCounts, float, float]] = []
-        state_space = product(
-            range(self.capacity + 1), range(self.capacity + 1)
-        )
-        for next_state in state_space:
-            p0, r0 = self.branch_transition_prob_and_exp_rentals(
-                0, morning_counts[0], next_state[0]
-            )
-            p1, r1 = self.branch_transition_prob_and_exp_rentals(
-                1, morning_counts[1], next_state[1]
-            )
-            r = r0 + r1
-            p = p0 * p1
-            result.append((CarCounts(next_state), r, p))
-        return result
+        try:
+            return self._cache[morning_counts]
+        except KeyError:
+            result: List[Tuple[CarCounts, float, float]] = []
+            for next_state in self.states:
+                p0, r0 = self.branch_transition_prob_and_exp_rentals(
+                    0, morning_counts[0], next_state[0]
+                )
+                p1, r1 = self.branch_transition_prob_and_exp_rentals(
+                    1, morning_counts[1], next_state[1]
+                )
+                r = r0 + r1
+                p = p0 * p1
+                result.append((CarCounts(next_state), r, p))
+            self._cache[morning_counts] = result
+            return result
 
     def branch_transition_prob_and_exp_rentals(
         self, branch: int, cars_morning: int, cars_evening: int
@@ -112,6 +128,12 @@ class JacksCarRental(FiniteMDP[CarCounts, MoveCars]):
         of the day to `cars_evening` cars at the end, given branch
         characteristics. Also gives expected number of cars rented out given
         that transition.
+
+        Note: exp_r will have a high level of numerical error when total_prob
+        is small, but this doesn't matter because only the product of both
+        is used. When total_prob is zero, exp_r is overriden to zero to prevent
+        divide by zero warnings. In future, it would be good to improve the
+        implementation though to avoid these issues in the first place.
 
         Args:
           branch: index of the branch for which this is being calculated
@@ -125,30 +147,36 @@ class JacksCarRental(FiniteMDP[CarCounts, MoveCars]):
             the day started with `cars_morning` cars and ended with
             `cars_evening` cars
         """
-        p_hire = poisson(mu=self.exp_demand_per_location[branch])
-        p_ret = poisson(mu=self.exp_returns_per_location[branch])
         probs: List[float] = []
         rentals: List[float] = []
-        for cars_hired in range(cars_morning + 1):
+        for cars_hired in range(
+            max(0, cars_morning - cars_evening), cars_morning + 1
+        ):
             cars_returned = cars_evening - cars_morning + cars_hired
+            assert cars_hired < len(self.p_hire[branch]), cars_hired
+            assert cars_returned < len(self.p_ret[branch]), cars_returned
+            assert cars_returned >= 0, (cars_hired, cars_returned)
             probs.append(
                 (
                     # prob of `cars_hired` cars being rented out
-                    p_hire.pmf(cars_hired)
+                    self.p_hire[branch][cars_hired]
                     if cars_hired < cars_morning
-                    else 1.0 - p_hire.cdf(cars_hired - 1)
+                    else 1.0 - np.sum(self.p_hire[branch][:cars_hired])
                 )
                 * (
                     # prob of `cars_returned` cars being returned
-                    p_ret.pmf(cars_returned)
+                    self.p_ret[branch][cars_returned]
                     if cars_evening < self.capacity
-                    else 1.0 - p_ret.cdf(cars_returned - 1)
+                    else 1.0 - np.sum(self.p_ret[branch][:cars_returned])
                 )
             )
             rentals.append(cars_hired)
         total_prob = sum(probs)
-        exp_r = sum(p * r for p, r in zip(probs, rentals)) / total_prob
-        return total_prob, exp_r
+        if total_prob == 0.0:
+            return 0.0, 0.0  # avoid divide by zero
+        else:
+            exp_r = sum(p * r for p, r in zip(probs, rentals)) / total_prob
+            return total_prob, exp_r
 
 
 def counts_after_moving_cars(
@@ -169,3 +197,13 @@ def counts_after_moving_cars(
       moves have taken place
     """
     return CarCounts((initial_counts[0] - move, initial_counts[1] + move))
+
+
+def poisson_table(max_k: int, mu: float) -> NDArray[np.float_]:
+    return poisson.pmf(range(max_k + 1), mu=mu)
+    # table = np.zeros(max_k + 1)
+    # table[:max_k] = poisson.pmf(range(max_k), mu=mu)
+    # assert table[-1] == 0.0
+    # table[-1] = 1.0 - poisson.cdf(max_k - 1, mu=mu)
+    # np.testing.assert_almost_equal(np.sum(table), 1.0)
+    # return table
