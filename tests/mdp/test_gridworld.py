@@ -32,7 +32,11 @@ class TestGridWorld:
         """Tests whether `next_states_and_rewards` method delivers expected
         next states, rewards and probabilities."""
         assert gridworld.next_states_and_rewards(state, action) == (
-            (expected_next_state, expected_reward, 1.0),
+            (
+                (expected_next_state,),
+                (1.0,),
+            ),
+            expected_reward,
         )
 
     @pytest.mark.parametrize(
@@ -115,14 +119,14 @@ class TestGridWorld:
 
     def test_terminal_state_functionality(self) -> None:
         gridworld = GridWorld(2, terminal_states=(GWState((1, 0)),))
-        nsar = gridworld.next_states_and_rewards(
+        (ns, p_ns), r = gridworld.next_states_and_rewards(
             GWState((1, 0)), GWAction("n")
         )
-        assert len(nsar) == 1
-        ns, r, p_nw = nsar[0]
-        assert ns == GWState((1, 0))
+        assert len(ns) == 1
+        assert len(p_ns) == 1
+        assert ns[0] == GWState((1, 0))
         assert r == 0.0
-        assert p_nw == 1.0
+        assert p_ns[0] == 1.0
 
     def test_wormholes_set_to_none_means_no_wormholes(self) -> None:
         gridworld = GridWorld(2)
@@ -134,22 +138,22 @@ class TestGridWorld:
 
     def test_custom_move_reward(self) -> None:
         gridworld = GridWorld(2, default_move_reward=3.0)
-        nsar = gridworld.next_states_and_rewards(
+        (ns, p_ns), r = gridworld.next_states_and_rewards(
             GWState((1, 0)), GWAction("e")
         )
-        assert len(nsar) == 1
-        ns, r, p_nw = nsar[0]
-        assert ns == GWState((1, 1))
+        assert len(ns) == 1
+        assert len(p_ns) == 1
+        assert ns[0] == GWState((1, 1))
         assert r == 3.0
-        assert p_nw == 1.0
+        assert p_ns[0] == 1.0
 
     def test_custom_invalid_action_reward(self) -> None:
         gridworld = GridWorld(2, invalid_action_reward=5.0)
-        nsar = gridworld.next_states_and_rewards(
+        (ns, p_ns), r = gridworld.next_states_and_rewards(
             GWState((1, 0)), GWAction("w")
         )
-        assert len(nsar) == 1
-        ns, r, p_nw = nsar[0]
-        assert ns == GWState((1, 0))
+        assert len(ns) == 1
+        assert len(p_ns) == 1
+        assert ns[0] == GWState((1, 0))
         assert r == 5.0
-        assert p_nw == 1.0
+        assert p_ns[0] == 1.0

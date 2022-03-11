@@ -2,7 +2,7 @@ from typing import List, Dict, Tuple, Collection
 import pytest
 from numpy.testing import assert_almost_equal
 import numpy as np
-from rl.mdp._types import TransitionsMapping, Policy
+from rl.mdp._types import TransitionsMapping, Policy, NextStateProbabilityTable
 from rl.mdp.base import FiniteMDP
 
 
@@ -15,14 +15,14 @@ class SimpleMDP(FiniteMDP[TState, TAction]):
     _actions = ["R", "L"]
     _transitions: TransitionsMapping[TState, TAction] = {
         "A": {
-            "R": (("B", -1.0, 0.75), ("C", 1.0, 0.25)),
-            "L": (("C", 1.0, 0.75), ("B", -1.0, 0.25)),
+            "R": (("B", 0.75, -1.0), ("C", 0.25, 1.0)),
+            "L": (("C", 0.75, 1.0), ("B", 0.25, -1.0)),
         },
         "B": {
-            "R": (("C", 1.0, 0.75), ("A", -1.0, 0.25)),
-            "L": (("A", -1.0, 0.75), ("C", 1.0, 0.25)),
+            "R": (("C", 0.75, 1.0), ("A", 0.25, -1.0)),
+            "L": (("A", 0.75, -1.0), ("C", 0.25, 1.0)),
         },
-        "C": {"R": (("C", 0.0, 1.0),), "L": (("C", 0.0, 1.0),)},
+        "C": {"R": (("C", 1.0, 0.0),), "L": (("C", 1.0, 0.0),)},
     }
 
     @property
@@ -34,8 +34,16 @@ class SimpleMDP(FiniteMDP[TState, TAction]):
 
     def next_states_and_rewards(
         self, state: TState, action: TAction
-    ) -> Collection[Tuple[TState, float, float]]:
-        return self._transitions[state][action]
+    ) -> Tuple[NextStateProbabilityTable, float]:
+        transitions: Collection[
+            Tuple[TState, float, float]
+        ] = self._transitions[state][action]
+        ns_ptable = (
+            [ns for ns, p, r in transitions],
+            [p for ns, p, r in transitions],
+        )
+        exp_r = sum(p * r for ns, p, r in transitions)
+        return ns_ptable, exp_r
 
 
 @pytest.fixture

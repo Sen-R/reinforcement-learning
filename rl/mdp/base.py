@@ -5,7 +5,6 @@ from typing import (
     Tuple,
     Mapping,
     Optional,
-    Collection,
 )
 from numpy.typing import NDArray
 import numpy as np
@@ -13,7 +12,7 @@ from ._types import (
     State,
     Action,
     Policy,
-    NextStateRewardAndProbability,
+    NextStateProbabilityTable,
 )
 
 
@@ -42,15 +41,14 @@ class FiniteMDP(ABC, Generic[State, Action]):
     @abstractmethod
     def next_states_and_rewards(
         self, state: State, action: Action
-    ) -> Collection[NextStateRewardAndProbability[State]]:
-        """Returns the next states, expected rewards and corresponding
-        probabilities after taking `action` in `state`.
+    ) -> Tuple[NextStateProbabilityTable[State], float]:
+        """Returns a probability table for next states, and expected reward,
+        after taking `action` in `state`.
 
         Returns:
-          A sequence of tuples `(ns, r, p_ns)`. Each element represents
-          a possible successor state (`ns`), accompanying expected reward,
-          (`r`) and the probability of ending up in that successor state
-          (`p_ns`)."""
+          next_states: a tuple of next states and corresponding probabilities
+          exp_reward: the expected reward following the chosen action
+        """
         pass
 
     def backup_single_state_value(
@@ -75,7 +73,8 @@ class FiniteMDP(ABC, Generic[State, Action]):
         """
         backed_up_v = 0.0
         for a, p_a in pi(state):
-            for ns, r, p_ns in self.next_states_and_rewards(state, a):
+            ns_ptable, r = self.next_states_and_rewards(state, a)
+            for ns, p_ns in zip(*ns_ptable):
                 backed_up_v += p_a * p_ns * (r + gamma * v[ns])
         return backed_up_v
 
@@ -100,9 +99,9 @@ class FiniteMDP(ABC, Generic[State, Action]):
         """
         best_action_and_value: Optional[Tuple[Action, float]] = None
         for a in self.actions(state):
+            ns_ptable, r = self.next_states_and_rewards(state, a)
             this_action_value = sum(
-                p_ns * (r + gamma * v[ns])
-                for ns, r, p_ns in self.next_states_and_rewards(state, a)
+                p_ns * (r + gamma * v[ns]) for ns, p_ns in zip(*ns_ptable)
             )
             if (
                 best_action_and_value is None
@@ -139,7 +138,8 @@ class FiniteMDP(ABC, Generic[State, Action]):
 
         for s in self.states:
             for a, p_a in pi(s):
-                for ns, r, p_ns in self.next_states_and_rewards(s, a):
+                ns_ptable, r = self.next_states_and_rewards(s, a)
+                for ns, p_ns in zip(*ns_ptable):
                     expected_rewards_vector[self.s2i(s)] += p_a * p_ns * r
                     discounted_transitions_matrix[
                         self.s2i(s), self.s2i(ns)
@@ -163,11 +163,15 @@ class FiniteMDP(ABC, Generic[State, Action]):
         initial_values = np.array(initial_values)
         updated_values = np.zeros(len(self.states))
         for s in self.states:
-            updated_values[self.s2i(s)] = max(
-                sum(
-                    p_ns * (r + gamma * initial_values[self.s2i(ns)])
-                    for ns, r, p_ns in self.next_states_and_rewards(s, a)
+            greatest_action_value = -np.inf
+            for a in self.actions(s):
+                ns_ptable, r = self.next_states_and_rewards(s, a)
+                greatest_action_value = max(
+                    greatest_action_value,
+                    sum(
+                        p_ns * (r + gamma * initial_values[self.s2i(ns)])
+                        for ns, p_ns in zip(*ns_ptable)
+                    ),
                 )
-                for a in self.actions(s)
-            )
+            updated_values[self.s2i(s)] = greatest_action_value
         return updated_values

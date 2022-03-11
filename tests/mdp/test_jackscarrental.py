@@ -1,4 +1,4 @@
-from typing import Tuple, Collection, Iterable
+from typing import Iterable, List
 import pytest
 from numpy.testing import assert_almost_equal
 from scipy.stats import poisson  # type: ignore
@@ -73,71 +73,65 @@ class TestJacksCarRental:
         state = CarCounts((1, 2))  # arbitrary state
         action = MoveCars(-1)  # arbitrary action
         morning_counts = CarCounts((2, 1))  # after applying action
-        evening_counts_and_rentals = jcr.evening_states_and_exp_rentals(
+        des_evening_counts, exp_rentals = jcr.evening_counts_and_exp_rentals(
             morning_counts
         )
-        exp_ns_rs_and_ps = [
-            (ns, r * 10.0 - 2.0, p) for ns, r, p in evening_counts_and_rentals
-        ]
-        act_ns_rs_and_ps = jcr.next_states_and_rewards(state, action)
-        for (act_ns, act_r, act_p), (exp_ns, exp_r, exp_p) in zip(
-            act_ns_rs_and_ps, exp_ns_rs_and_ps
-        ):
-            assert act_ns == exp_ns
-            print(act_ns)
-            assert_almost_equal(act_r, exp_r)
-            assert_almost_equal(act_p, exp_p)
+        des_exp_reward = exp_rentals * 10.0 - 2.0
+        act_evening_counts, act_exp_reward = jcr.next_states_and_rewards(
+            state, action
+        )
+        assert_almost_equal(act_exp_reward, des_exp_reward)
+        assert act_evening_counts[0], des_evening_counts[0]
+        assert_almost_equal(act_evening_counts[1], des_evening_counts[1])
 
     def test_evening_states_and_exp_rentals(self, jcr: JacksCarRental) -> None:
         morning_counts = CarCounts((1, 2))
-        ns_rs_and_ps = jcr.evening_states_and_exp_rentals(morning_counts)
+        ec_ptable, exp_rentals = jcr.evening_counts_and_exp_rentals(
+            morning_counts
+        )
 
         # All states are possible next states, let's check this first
-        assert set(ns for ns, _, _ in ns_rs_and_ps) == set(jcr.states)
+        assert set(ec_ptable[0]) == set(jcr.states)
 
         # Probabilities should sum to one
-        assert_almost_equal(sum(p for _, _, p in ns_rs_and_ps), 1.0)
+        assert_almost_equal(sum(ec_ptable[1]), 1.0)
 
     @pytest.mark.parametrize(
-        "cars_morning,cars_evening,rs_and_ps",
+        "branch,cars_morning,des_count_probs,des_exp_rentals",
         [
             (
+                0,
                 1,
-                1,
-                (
-                    # same transition but for branch 1
-                    (0, p_rent[1].pmf(0) * p_ret[1].pmf(0)),
-                    (1, (1.0 - p_rent[1].cdf(0)) * p_ret[1].pmf(1)),
-                ),
-            ),
-            (
-                2,
-                2,
-                (
-                    # logic different if branch ends up full
-                    (0, p_rent[1].pmf(0)),
-                    (1, p_rent[1].pmf(1) * (1.0 - p_ret[1].cdf(0))),
-                    (2, (1.0 - p_rent[1].cdf(1)) * (1.0 - p_ret[1].cdf(1))),
-                ),
+                [
+                    (1.0 - p_rent[0].cdf(0)) * p_ret[0].pmf(0),
+                    (
+                        p_rent[0].pmf(0) * p_ret[0].pmf(0)
+                        + (1.0 - p_rent[0].cdf(0)) * p_ret[0].pmf(1)
+                    ),
+                    (
+                        p_rent[0].pmf(0) * (1.0 - p_ret[0].cdf(0))
+                        + (1.0 - p_rent[0].cdf(0)) * (1.0 - p_ret[0].cdf(1))
+                    ),
+                ],
+                1.0 - p_rent[0].cdf(0),
             ),
         ],
     )
-    def test_branch_transition_prob_and_exp_rentals(
+    def test_branch_evening_count_and_exp_rentals(
         self,
         jcr: JacksCarRental,
+        branch: int,
         cars_morning: int,
-        cars_evening: int,
-        rs_and_ps: Collection[Tuple[int, float]],
+        des_count_probs: List[float],
+        des_exp_rentals: float,
     ) -> None:
-        expected_p = sum(r_and_p[1] for r_and_p in rs_and_ps)
-        expected_r = (
-            sum(r_and_p[0] * r_and_p[1] for r_and_p in rs_and_ps) / expected_p
-        )
-        actual_p, actual_r = jcr.branch_transition_prob_and_exp_rentals(
-            1, cars_morning=cars_morning, cars_evening=cars_evening
-        )
-        assert_almost_equal(actual_p, expected_p)
-        assert_almost_equal(actual_r, expected_r)
+        (
+            act_count_probs,
+            act_exp_rentals,
+        ) = jcr.branch_evening_count_and_exp_rentals(branch, cars_morning)
+        assert_almost_equal(act_count_probs.sum(), 1.0)
+        assert_almost_equal(act_count_probs, des_count_probs)
+        assert_almost_equal(act_exp_rentals, des_exp_rentals)
 
 
 @pytest.mark.parametrize(

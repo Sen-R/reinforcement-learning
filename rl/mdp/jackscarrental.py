@@ -9,7 +9,7 @@ from numpy.typing import NDArray
 import numpy as np
 from scipy.stats import poisson  # type: ignore
 from .base import FiniteMDP
-from ._types import NextStateRewardAndProbability
+from ._types import NextStateProbabilityTable
 
 CarCounts = NewType("CarCounts", Tuple[int, int])
 MoveCars = NewType("MoveCars", int)
@@ -42,15 +42,25 @@ class JacksCarRental(FiniteMDP[CarCounts, MoveCars]):
         self.exp_returns_per_location = exp_returns_per_location
         self.reward_for_rental = reward_for_rental
         self.reward_per_car_for_moving_cars = reward_per_car_for_moving_cars
-        self.p_hire = (
-            poisson_table(self.capacity, exp_demand_per_location[0]),
-            poisson_table(self.capacity, exp_demand_per_location[1]),
+
+        # Event space arrays, for computing probabilities
+        self.p = (
+            np.outer(
+                poisson_table(self.capacity, exp_demand_per_location[0]),
+                poisson_table(self.capacity, exp_returns_per_location[0]),
+            ),
+            np.outer(
+                poisson_table(self.capacity, exp_demand_per_location[1]),
+                poisson_table(self.capacity, exp_returns_per_location[1]),
+            ),
         )
-        self.p_ret = (
-            poisson_table(self.capacity, exp_returns_per_location[0]),
-            poisson_table(self.capacity, exp_returns_per_location[1]),
-        )
-        self._cache: Dict[CarCounts, List[Tuple[CarCounts, float, float]]] = {}
+        self.demand = np.arange(self.capacity + 1)[:, np.newaxis]
+        self.returns = np.arange(self.capacity + 1)[np.newaxis, :]
+
+        # Cache to speed up next states and rewards calculation
+        self._cache: Dict[
+            CarCounts, Tuple[NextStateProbabilityTable[CarCounts], float]
+        ] = {}
 
     @property
     def states(self) -> List[CarCounts]:
@@ -68,115 +78,85 @@ class JacksCarRental(FiniteMDP[CarCounts, MoveCars]):
 
     def next_states_and_rewards(
         self, state: CarCounts, action: MoveCars
-    ) -> List[NextStateRewardAndProbability[CarCounts]]:
+    ) -> Tuple[NextStateProbabilityTable[CarCounts], float]:
         next_morning_counts = counts_after_moving_cars(state, action)
         assert max(next_morning_counts) <= self.capacity, (state, action)
         assert min(next_morning_counts) >= 0, (state, action)
-        next_evening_counts_and_rentals = self.evening_states_and_exp_rentals(
+        next_evening_counts, exp_rentals = self.evening_counts_and_exp_rentals(
             next_morning_counts
         )
         action_reward = abs(action) * self.reward_per_car_for_moving_cars
-        return [
-            (
-                next_state,
-                rentals * self.reward_for_rental + action_reward,
-                prob,
-            )
-            for next_state, rentals, prob in next_evening_counts_and_rentals
-        ]
+        exp_reward = exp_rentals * self.reward_for_rental + action_reward
+        return next_evening_counts, exp_reward
 
-    def evening_states_and_exp_rentals(
+    def evening_counts_and_exp_rentals(
         self, morning_counts: CarCounts
-    ) -> List[Tuple[CarCounts, float, float]]:
-        """Returns possible car counts at the end of a day, expected number
-        of cars rented over the day, and associated probabilities.
+    ) -> Tuple[NextStateProbabilityTable[CarCounts], float]:
+        """Returns probability table for end-of-day car counts as well as
+        expected number of rentals over the day, given the number of cars
+        available in the morning (post any overnight moves).
 
         Args:
           morning_counts: the number cars at each location at the start of the
             day
 
         Returns:
-          A list of tuples `(evening_counts, cars_rented, prob)`, enumerating
-          the possibilities for the end of that day: i.e. the possible end of
-          day car counts per location (`evening_counts`), the associated
-          expected number of cars rented over the day (`cars rented`), and
-          the associated probability of this outcome occurring (`prob`),
-          conditional on `morning_counts` cars being present at the start of
-          the day.
+          evening_counts: tuple of lists, the first containing possible
+            end-of-day counts and the second containing associated
+            probabilities
+          exp_rentals: expected number of (successful) rentals over that day
         """
         try:
             return self._cache[morning_counts]
         except KeyError:
-            result: List[Tuple[CarCounts, float, float]] = []
-            for next_state in self.states:
-                p0, r0 = self.branch_transition_prob_and_exp_rentals(
-                    0, morning_counts[0], next_state[0]
-                )
-                p1, r1 = self.branch_transition_prob_and_exp_rentals(
-                    1, morning_counts[1], next_state[1]
-                )
-                r = r0 + r1
-                p = p0 * p1
-                result.append((CarCounts(next_state), r, p))
-            self._cache[morning_counts] = result
-            return result
+            (
+                ec_prob_0,
+                exp_rentals_0,
+            ) = self.branch_evening_count_and_exp_rentals(0, morning_counts[0])
+            (
+                ec_prob_1,
+                exp_rentals_1,
+            ) = self.branch_evening_count_and_exp_rentals(1, morning_counts[1])
+            evening_counts = (
+                self.states,
+                [ec_prob_0[i] * ec_prob_1[j] for i, j in self.states],
+            )
+            exp_rentals = exp_rentals_0 + exp_rentals_1
+            self._cache[morning_counts] = (evening_counts, exp_rentals)
+            return evening_counts, exp_rentals
 
-    def branch_transition_prob_and_exp_rentals(
-        self, branch: int, cars_morning: int, cars_evening: int
-    ) -> Tuple[float, float]:
-        """Returns probability of going from `cars_morning` cars at the start
-        of the day to `cars_evening` cars at the end, given branch
-        characteristics. Also gives expected number of cars rented out given
-        that transition.
-
-        Note: exp_r will have a high level of numerical error when total_prob
-        is small, but this doesn't matter because only the product of both
-        is used. When total_prob is zero, exp_r is overriden to zero to prevent
-        divide by zero warnings. In future, it would be good to improve the
-        implementation though to avoid these issues in the first place.
+    def branch_evening_count_and_exp_rentals(
+        self, branch: int, cars_morning: int
+    ) -> Tuple[NDArray[np.float_], float]:
+        """Returns probabilities for all possible end-of-day car counts,
+        and expected number of rentals, both conditional on the number
+        of cars in the morning, for the specified branch.
 
         Args:
           branch: index of the branch for which this is being calculated
           cars_morning: number of cars at this branch at the start of the day
-          cars_evening: number of cars at this branch at the end of the day
 
         Returns:
-          total_prob: probability of having `cars_evening` cars at the end of
-            the day, given the branch started the day with `cars_morning` cars
-          exp_r: expected number of cars rented out over the day, given that
-            the day started with `cars_morning` cars and ended with
-            `cars_evening` cars
+          count_probs: array of length `self.capacity + 1` containing
+            probability of ending up with 0 to `self.capacity` cars at the
+            end of the day, conditional on having started the day with
+            `cars_morning` cars
+          exp_rentals: expected number of rentals over the day conditional
+            on having started the day with `cars_morning` cars
         """
-        probs: List[float] = []
-        rentals: List[float] = []
-        for cars_hired in range(
-            max(0, cars_morning - cars_evening), cars_morning + 1
-        ):
-            cars_returned = cars_evening - cars_morning + cars_hired
-            assert cars_hired < len(self.p_hire[branch]), cars_hired
-            assert cars_returned < len(self.p_ret[branch]), cars_returned
-            assert cars_returned >= 0, (cars_hired, cars_returned)
-            probs.append(
-                (
-                    # prob of `cars_hired` cars being rented out
-                    self.p_hire[branch][cars_hired]
-                    if cars_hired < cars_morning
-                    else 1.0 - np.sum(self.p_hire[branch][:cars_hired])
-                )
-                * (
-                    # prob of `cars_returned` cars being returned
-                    self.p_ret[branch][cars_returned]
-                    if cars_evening < self.capacity
-                    else 1.0 - np.sum(self.p_ret[branch][:cars_returned])
-                )
-            )
-            rentals.append(cars_hired)
-        total_prob = sum(probs)
-        if total_prob == 0.0:
-            return 0.0, 0.0  # avoid divide by zero
-        else:
-            exp_r = sum(p * r for p, r in zip(probs, rentals)) / total_prob
-            return total_prob, exp_r
+        # Evaluate desired random variables over event space
+        cars_hired = np.minimum(cars_morning, self.demand)
+        cars_evening = np.minimum(
+            self.capacity, cars_morning - cars_hired + self.returns
+        )
+
+        # Evaluate desired marginal and expectation (conditional on
+        # cars_morning) and return
+        count_probs = np.bincount(
+            cars_evening.ravel(), weights=self.p[branch].ravel()
+        ).astype(np.float_)
+        exp_rentals = np.sum(cars_hired * self.p[branch])
+        return count_probs, exp_rentals
 
 
 def counts_after_moving_cars(

@@ -2,7 +2,7 @@ from typing import NewType, Tuple, Sequence, Mapping, Optional, Iterable
 from itertools import product
 from ._types import (
     Policy,
-    NextStateRewardAndProbability,
+    NextStateProbabilityTable,
     TransitionsMapping,
     Reward,
 )
@@ -12,7 +12,7 @@ from .base import FiniteMDP
 GWState = NewType("GWState", Tuple[int, int])
 GWAction = NewType("GWAction", str)
 GWPolicy = Policy[GWState, GWAction]
-GWNextStateRewardAndProbability = NextStateRewardAndProbability[GWState]
+GWNextStateProbabilityTable = NextStateProbabilityTable[GWState]
 GWTransitionsMapping = TransitionsMapping[GWState, GWAction]
 
 
@@ -61,18 +61,31 @@ class GridWorld(FiniteMDP[GWState, GWAction]):
 
     def next_states_and_rewards(
         self, state: GWState, action: GWAction
-    ) -> Tuple[NextStateRewardAndProbability]:
+    ) -> Tuple[GWNextStateProbabilityTable, float]:
         if state in self.terminal_states:
-            return ((state, 0.0, 1.0),)
+            return (
+                (state,),
+                (1.0,),
+            ), 0.0
         elif state in self.wormholes:
-            return ((*self.wormholes[state], 1.0),)
+            next_state, reward = self.wormholes[state]
+            return (
+                (next_state,),
+                (1.0,),
+            ), reward
         else:
             move = self.actions_to_moves[action]
             next_state = GWState((state[0] + move[0], state[1] + move[1]))
             if self.state_is_valid(next_state):
-                return ((next_state, self.default_move_reward, 1.0),)
+                return (
+                    (next_state,),
+                    (1.0,),
+                ), self.default_move_reward
             else:
-                return ((state, self.invalid_action_reward, 1.0),)
+                return (
+                    (state,),
+                    (1.0,),
+                ), self.invalid_action_reward
 
     def state_is_valid(self, state: GWState) -> bool:
         return min(state) >= 0 and max(state) < self.size
