@@ -6,8 +6,8 @@ from rl.mdp.solve import policy_iteration
 # Jack's car rental problem with parameters specified in Sutton, Barto
 jcr = JacksCarRental(
     capacity=20,
-    exp_demand_per_location=(1, 2),
-    exp_returns_per_location=(1, 1),
+    exp_demand_per_location=(3, 4),
+    exp_returns_per_location=(3, 2),
     reward_for_rental=10.0,
     reward_per_car_for_moving_cars=-2.0,
 )
