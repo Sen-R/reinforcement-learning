@@ -226,7 +226,7 @@ def iterative_policy_evaluation(
     Returns:
       niter: number of sweeps of the state space that were completed
     """
-    for niter in tqdm(range(1, maxiter + 1)):
+    for niter in range(1, maxiter + 1):
         delta_v = 0.0  # tracks biggest change to v so far
         for s in mdp.states:
             v_old = v[s]
