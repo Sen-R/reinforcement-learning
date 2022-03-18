@@ -1,4 +1,4 @@
-from typing import Collection
+from typing import Collection, Mapping
 from rl.mdp.jackscarrental import JacksCarRental, CarCounts
 from rl.mdp.solve import policy_iteration
 
@@ -19,11 +19,18 @@ def print_row_vector(row: Collection[float], width: int, digits: int) -> None:
     print(" ".join(template.format(el) for el in row))
 
 
-def print_matrix(
-    matrix: Collection[Collection[float]], width: int, digits: int
+def plot_2d_function(
+    mapping: Mapping[CarCounts, float], width: int, digits: int
 ) -> None:
-    for row in matrix:
-        print_row_vector(row, width, digits)
+    x_vals, y_vals = tuple(zip(*mapping.keys()))
+    x_min, x_max = min(x_vals), max(x_vals)
+    y_min, y_max = min(y_vals), max(y_vals)
+    for y in range(y_max, y_min - 1, -1):
+        print_row_vector(
+            [mapping[CarCounts((x, y))] for x in range(x_min, x_max + 1)],
+            width,
+            digits,
+        )
 
 
 if __name__ == "__main__":
@@ -31,10 +38,6 @@ if __name__ == "__main__":
     pi = {s: jcr.actions(s)[0] for s in jcr.states}
     policy_iteration(v, pi, jcr, 0.9, 1.0)
     print("State values:")
-    print_matrix(
-        [[v[CarCounts((i, j))] for j in range(21)] for i in range(21)], 3, 0
-    )
+    plot_2d_function(v, 3, 0)
     print("\nOptimal action:")
-    print_matrix(
-        [[pi[CarCounts((i, j))] for j in range(21)] for i in range(21)], 2, 0
-    )
+    plot_2d_function(pi, 3, 0)
