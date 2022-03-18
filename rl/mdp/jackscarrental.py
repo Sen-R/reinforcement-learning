@@ -20,6 +20,7 @@ class JacksCarRental(FiniteMDP[CarCounts, MoveCars]):
 
     Args:
       capacity: number of cars that can be held at a location
+      overnight_moves_limit: max number of cars that can be moved overnight
       exp_demand_per_location: mean daily rental demand at each location
       exp_returns_per_location: mean daily returns at each location
       reward_for_rental: dollar credit received for renting a car out
@@ -32,12 +33,14 @@ class JacksCarRental(FiniteMDP[CarCounts, MoveCars]):
     def __init__(
         self,
         capacity: int,
+        overnight_moves_limit: int,
         exp_demand_per_location: Tuple[int, int],
         exp_returns_per_location: Tuple[int, int],
         reward_for_rental: float,
         reward_per_car_for_moving_cars: float,
     ):
         self.capacity = capacity
+        self.overnight_moves_limit = overnight_moves_limit
         self.exp_demand_per_location = exp_demand_per_location
         self.exp_returns_per_location = exp_returns_per_location
         self.reward_for_rental = reward_for_rental
@@ -72,8 +75,12 @@ class JacksCarRental(FiniteMDP[CarCounts, MoveCars]):
         ]
 
     def actions(self, state: CarCounts) -> List[MoveCars]:
-        min_move = -min(self.capacity - state[0], state[1])
-        max_move = min(self.capacity - state[1], state[0])
+        min_move = -min(
+            self.capacity - state[0], state[1], self.overnight_moves_limit
+        )
+        max_move = min(
+            self.capacity - state[1], state[0], self.overnight_moves_limit
+        )
         return [MoveCars(m) for m in range(min_move, max_move + 1)]
 
     def next_states_and_rewards(

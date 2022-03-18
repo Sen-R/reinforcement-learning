@@ -18,6 +18,7 @@ def jcr() -> JacksCarRental:
     the state space size manageable for testing purposes."""
     mdp = JacksCarRental(
         capacity=2,
+        overnight_moves_limit=2,
         exp_demand_per_location=(1, 2),
         exp_returns_per_location=(1, 1),
         reward_for_rental=10.0,
@@ -65,6 +66,31 @@ class TestJacksCarRental:
     ) -> None:
         """Actions should be a (possibly negative) int, representing
         the net movement of cars from location 1 to location 2 overnight."""
+        expected_actions = set(MoveCars(m) for m in exp_range)
+        actual_actions = set(jcr.actions(state))
+        assert expected_actions == actual_actions
+
+    @pytest.mark.parametrize(
+        "state,exp_range",
+        [
+            (CarCounts((10, 10)), range(-5, 6)),
+            (CarCounts((3, 10)), range(-5, 4)),
+            (CarCounts((17, 6)), range(-3, 6)),
+        ],
+    )
+    def test_overnight_moves_limit(
+        self, state: CarCounts, exp_range: Iterable[int]
+    ) -> None:
+        """Tests whether action space is correct when overnight_moves_limit
+        is set."""
+        jcr = JacksCarRental(
+            capacity=20,
+            overnight_moves_limit=5,
+            exp_demand_per_location=(3, 4),
+            exp_returns_per_location=(3, 2),
+            reward_for_rental=10.0,
+            reward_per_car_for_moving_cars=-2.0,
+        )
         expected_actions = set(MoveCars(m) for m in exp_range)
         actual_actions = set(jcr.actions(state))
         assert expected_actions == actual_actions
