@@ -25,9 +25,9 @@ def plot_2d_function(
     x_vals, y_vals = tuple(zip(*mapping.keys()))
     x_min, x_max = min(x_vals), max(x_vals)
     y_min, y_max = min(y_vals), max(y_vals)
-    for y in range(y_max, y_min - 1, -1):
+    for x in range(x_max, x_min - 1, -1):
         print_row_vector(
-            [mapping[CarCounts((x, y))] for x in range(x_min, x_max + 1)],
+            [mapping[CarCounts((x, y))] for y in range(y_min, y_max + 1)],
             width,
             digits,
         )
@@ -36,7 +36,7 @@ def plot_2d_function(
 if __name__ == "__main__":
     v = {s: 0.0 for s in jcr.states}
     pi = {s: jcr.actions(s)[0] for s in jcr.states}
-    policy_iteration(v, pi, jcr, 0.9, 1.0)
+    policy_iteration(v, pi, jcr, 0.9, 0.1)
     print("State values:")
     plot_2d_function(v, 3, 0)
     print("\nOptimal action:")
