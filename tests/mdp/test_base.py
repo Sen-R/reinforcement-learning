@@ -109,7 +109,7 @@ class TestFiniteMDP:
             (TState("B"), TAction("L"), 1.525),
         ],
     )
-    def test_backup_single_state_optimal_action(
+    def test_backup_single_state_optimal_actions(
         self,
         test_mdp: SimpleMDP,
         v: Dict[TState, float],
@@ -118,11 +118,36 @@ class TestFiniteMDP:
         expected_action: TAction,
         expected_action_value: float,
     ) -> None:
-        action, action_value = test_mdp.backup_single_state_optimal_action(
+        actions, action_value = test_mdp.backup_single_state_optimal_actions(
             state, v, gamma
         )
-        assert action == expected_action
+        assert len(actions) == 1
+        assert actions[0] == expected_action
         assert_almost_equal(action_value, expected_action_value)
+
+    def test_backup_single_state_optimal_actions_with_tie(
+        self,
+        test_mdp: SimpleMDP,
+    ) -> None:
+        """Tests the backup_single_state_optimal_actions method in a case
+        where there are multiple actions that return the same value."""
+        # This time we set up a value function so that, for the chosen
+        # values of gamma and the rewards specified in the MDP, both
+        # `L` and `R` actions should have equal value from state `A`. As a
+        # result, the method should return both actions.
+
+        # With `v[C]==0` and (arbitrarily) `v[A]==2`, we can solve the
+        # the simultaneous equations to show that `v[B]` needs to be 20/9
+        # for this to be the case, resulting in an action value update for
+        # state A of 1.
+        gamma = 0.9
+        state = TState("A")
+        v = {"A": 2.0, "B": 20 / 9, "C": 0.0}
+        actions, action_value = test_mdp.backup_single_state_optimal_actions(
+            state, v, gamma
+        )
+        assert_almost_equal(action_value, 1.0)
+        assert set(actions) == {TAction("L"), TAction("R")}
 
     def test_backup_policy_values_operator(
         self,

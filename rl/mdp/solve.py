@@ -135,10 +135,11 @@ def policy_iteration(
     for niter in tqdm(range(1, maxiter + 1)):
         policy_stable = True
         for s in mdp.states:
-            old_action = pi[s]
-            pi[s], _ = mdp.backup_single_state_optimal_action(s, v, gamma)
-            if old_action != pi[s]:
+            old_a = pi[s]
+            new_as, _ = mdp.backup_single_state_optimal_actions(s, v, gamma)
+            if old_a not in new_as:
                 policy_stable = False
+                pi[s] = new_as[0]  # Arbitrarily pick one if there are many
         if policy_stable:
             break
         iterative_policy_evaluation(
@@ -176,7 +177,7 @@ def value_iteration(
         delta_v = 0.0
         for s in mdp.states:
             v_old = v[s]
-            _, v[s] = mdp.backup_single_state_optimal_action(s, v, gamma)
+            _, v[s] = mdp.backup_single_state_optimal_actions(s, v, gamma)
             delta_v = max(delta_v, abs(v_old - v[s]))
         if delta_v < tol:
             break

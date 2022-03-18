@@ -84,10 +84,11 @@ class TestGridWorld:
         # expectations
         state = GWState((4, 0))
         assert gridworld.s2i(state) == 20  # sanity check
-        action, action_value = gridworld.backup_single_state_optimal_action(
+        actions, action_value = gridworld.backup_single_state_optimal_actions(
             state, v, gamma=0.9
         )
-        assert action == GWAction("e")  # worked out by hand this is optimal
+        assert len(actions) == 1
+        assert actions[0] == GWAction("e")  # RHS worked out by hand
         assert action_value == 0.9 * 21  # corresponding action value
 
     def test_backup_policy_values_operator(self, gridworld: GridWorld) -> None:

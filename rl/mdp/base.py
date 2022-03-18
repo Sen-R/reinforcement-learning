@@ -4,7 +4,7 @@ from typing import (
     Sequence,
     Tuple,
     Mapping,
-    Optional,
+    List,
 )
 from numpy.typing import NDArray
 import numpy as np
@@ -78,13 +78,14 @@ class FiniteMDP(ABC, Generic[State, Action]):
                 backed_up_v += p_a * p_ns * (r + gamma * v[ns])
         return backed_up_v
 
-    def backup_single_state_optimal_action(
+    def backup_single_state_optimal_actions(
         self,
         state: State,
         v: Mapping[State, float],
         gamma: float,
-    ) -> Tuple[Action, float]:
-        """Returns an action and corresponding value that maximises expected
+        tol: float = 1.0e-8,
+    ) -> Tuple[List[Action], float]:
+        """Returns the actions and corresponding value that maximise expected
         return from `state`, estimated using the current state value mapping
         `v`.
 
@@ -92,24 +93,26 @@ class FiniteMDP(ABC, Generic[State, Action]):
           state: current state, for which optimal action is estimated
           v: estimated state values, used to back-up optimal action
           gamma: discount factor
+          tol: tolerance for determining whether values for two different
+            actions are essentially equal (to within numerical error)
 
         Returns:
-          action: maximising action, chosen arbitrarily if there are ties
+          actions: actions that maximise the action value (could be more than
+            one)
           action_value: corresponding maximising action value
         """
-        best_action_and_value: Optional[Tuple[Action, float]] = None
-        for a in self.actions(state):
+        available_actions = self.actions(state)
+        all_action_values = np.zeros(len(available_actions))
+        for idx, a in enumerate(available_actions):
             ns_ptable, r = self.next_states_and_rewards(state, a)
-            this_action_value = sum(
+            all_action_values[idx] = sum(
                 p_ns * (r + gamma * v[ns]) for ns, p_ns in zip(*ns_ptable)
             )
-            if (
-                best_action_and_value is None
-                or this_action_value > best_action_and_value[1]
-            ):
-                best_action_and_value = (a, this_action_value)
-        assert best_action_and_value is not None
-        return best_action_and_value
+        action_value = np.max(all_action_values)
+        is_maxing = np.isclose(all_action_values, action_value)
+        actions = [a for a, m in zip(available_actions, is_maxing) if m]
+        assert len(actions) > 0
+        return actions, action_value
 
     def backup_policy_values_operator(
         self,
