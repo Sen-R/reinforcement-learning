@@ -1,5 +1,6 @@
-from rl.mdp.jackscarrental import JacksCarRental
-from rl.mdp.solve import value_iteration
+from typing import Collection
+from rl.mdp.jackscarrental import JacksCarRental, CarCounts
+from rl.mdp.solve import policy_iteration
 
 
 # Jack's car rental problem with parameters specified in Sutton, Barto
@@ -12,7 +13,27 @@ jcr = JacksCarRental(
 )
 
 
+def print_row_vector(row: Collection[float], width: int, digits: int) -> None:
+    template = f"{{:{width}.{digits}f}}"
+    print(" ".join(template.format(el) for el in row))
+
+
+def print_matrix(
+    matrix: Collection[Collection[float]], width: int, digits: int
+) -> None:
+    for row in matrix:
+        print_row_vector(row, width, digits)
+
+
 if __name__ == "__main__":
     v = {s: 0.0 for s in jcr.states}
-    value_iteration(v, jcr, 0.9, 1.0)
-    print(v)
+    pi = {s: jcr.actions(s)[0] for s in jcr.states}
+    policy_iteration(v, pi, jcr, 0.9, 1.0)
+    print("State values:")
+    print_matrix(
+        [[v[CarCounts((i, j))] for j in range(21)] for i in range(21)], 3, 0
+    )
+    print("\nOptimal action:")
+    print_matrix(
+        [[pi[CarCounts((i, j))] for j in range(21)] for i in range(21)], 2, 0
+    )
