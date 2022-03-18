@@ -1,5 +1,6 @@
 from typing import Dict, Optional, MutableMapping
 from warnings import warn
+from tqdm import tqdm  # type: ignore
 import numpy as np
 from scipy import optimize  # type: ignore
 from ._types import State, Action, Policy
@@ -86,7 +87,7 @@ def iterative_policy_evaluation(
     Returns:
       niter: number of sweeps of the state space that were completed
     """
-    for niter in range(1, maxiter + 1):
+    for niter in tqdm(range(1, maxiter + 1)):
         delta_v = 0.0  # tracks biggest change to v so far
         for s in mdp.states:
             v_old = v[s]
@@ -131,7 +132,7 @@ def policy_iteration(
     Returns:
       niter: number of sweeps of the state space that were performed
     """
-    for niter in range(1, maxiter + 1):
+    for niter in tqdm(range(1, maxiter + 1)):
         policy_stable = True
         for s in mdp.states:
             old_action = pi[s]
@@ -171,7 +172,7 @@ def value_iteration(
     Returns:
       niter: number of sweeps of the state space that took place
     """
-    for niter in range(1, maxiter + 1):
+    for niter in tqdm(range(1, maxiter + 1)):
         delta_v = 0.0
         for s in mdp.states:
             v_old = v[s]
