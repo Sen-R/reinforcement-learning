@@ -104,8 +104,8 @@ def backup_policy_values_operator(
     for s in mdp.states:
         for a, p_a in pi(s):
             ns_ptable, r = mdp.next_states_and_rewards(s, a)
+            expected_rewards_vector[mdp.s2i(s)] += p_a * r
             for ns, p_ns in zip(*ns_ptable):
-                expected_rewards_vector[mdp.s2i(s)] += p_a * p_ns * r
                 discounted_transitions_matrix[mdp.s2i(s), mdp.s2i(ns)] += (
                     gamma * p_a * p_ns
                 )
