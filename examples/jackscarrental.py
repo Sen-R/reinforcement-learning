@@ -1,6 +1,6 @@
 from typing import Collection, Mapping
 from rl.mdp.jackscarrental import JacksCarRental, CarCounts
-from rl.mdp.solve import policy_iteration
+from rl.mdp.solve import policy_iteration, exact_state_values
 
 
 # Jack's car rental problem with parameters specified in Sutton, Barto
@@ -37,7 +37,10 @@ if __name__ == "__main__":
     v = {s: 0.0 for s in jcr.states}
     pi = {s: jcr.actions(s)[0] for s in jcr.states}
     policy_iteration(v, pi, jcr, 0.9, 0.1)
+    v_exact = exact_state_values(jcr, 0.9, lambda s: ((pi[s], 1.0),))
     print("State values:")
     plot_2d_function(v, 3, 0)
     print("\nOptimal action:")
     plot_2d_function(pi, 3, 0)
+    print("\nExact state values:")
+    plot_2d_function(v_exact, 3, 0)
