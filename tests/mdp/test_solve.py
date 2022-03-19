@@ -9,6 +9,7 @@ from rl.mdp.solve import (
     backup_single_state_optimal_actions,
     backup_policy_values_operator,
     backup_optimal_values,
+    exact_state_values,
 )
 from .conftest import TState, TAction
 
@@ -128,3 +129,15 @@ class TestSolveBasicComponents:
         updated_v = backup_optimal_values(test_mdp, initial_v_array, gamma)
         expected_v = [0.725, 1.525, 0.0]
         assert_almost_equal(updated_v, expected_v)
+
+
+class TestSolvers:
+    def test_exact_state_values_regression(
+        self, test_mdp: FiniteMDP, pi: Policy[TState, TAction], gamma: float
+    ) -> None:
+        """Tests output of solver against saved previous run."""
+        expected = {"A": -0.14106313, "B": -0.59521761, "C": 0.0}
+        actual = exact_state_values(test_mdp, gamma, pi)
+        assert actual.keys() == expected.keys()
+        for state in actual.keys():
+            assert_almost_equal(actual[state], expected[state], err_msg=state)
