@@ -5,6 +5,7 @@ import numpy as np
 from rl.mdp._types import Policy
 from rl.mdp import FiniteMDP
 from rl.mdp.solve import (
+    backup_action_value,
     backup_single_state_value,
     backup_single_state_optimal_actions,
     backup_policy_values_operator,
@@ -56,6 +57,27 @@ class TestSolveBasicComponents:
     ) -> None:
         updated_v = backup_single_state_value(test_mdp, state, v, gamma, pi)
         assert_almost_equal(updated_v, expected_v)
+
+    @pytest.mark.parametrize(
+        "state,action,des_action_value",
+        [
+            ("A", "L", 0.75 * (1.0 + 0.9 * 0.0) + 0.25 * (-1.0 + 0.9 * 1.0)),
+            ("B", "R", 0.75 * (1.0 + 0.9 * 0.0) + 0.25 * (-1.0 + 0.9 * 3.0)),
+        ],
+    )
+    def test_backup_action_value(
+        self,
+        test_mdp: FiniteMDP,
+        v: Dict[TState, float],
+        gamma: float,
+        state: TState,
+        action: TAction,
+        des_action_value: float,
+    ) -> None:
+        act_action_value = backup_action_value(
+            test_mdp, state, action, v, gamma
+        )
+        assert_almost_equal(act_action_value, des_action_value)
 
     @pytest.mark.parametrize(
         "state, expected_action, expected_action_value",

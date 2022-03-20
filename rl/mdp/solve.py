@@ -8,6 +8,27 @@ from ._types import State, Action, Policy
 from .base import FiniteMDP
 
 
+def backup_action_value(
+    mdp: FiniteMDP[State, Action],
+    state: State,
+    action: Action,
+    v: Mapping[State, float],
+    gamma: float,
+) -> float:
+    """Estimates action value for given state and action from successor state
+    values.
+
+    Args:
+      mdp: FiniteMDP for which action value is being estimated
+      state: state for which action value is being estimated
+      action: action (in `state`) for which value is being estimated
+      v: current state value estimates
+      gamma: discount factor"""
+    (nss, ps), exp_r = mdp.next_states_and_rewards(state, action)
+    action_value = exp_r + gamma * sum(p * v[ns] for ns, p in zip(nss, ps))
+    return action_value
+
+
 def backup_single_state_value(
     mdp: FiniteMDP[State, Action],
     state: State,
@@ -29,12 +50,11 @@ def backup_single_state_value(
     Returns:
       updated value estimate for `state`
     """
-    backed_up_v = 0.0
-    for a, p_a in pi(state):
-        ns_ptable, r = mdp.next_states_and_rewards(state, a)
-        for ns, p_ns in zip(*ns_ptable):
-            backed_up_v += p_a * p_ns * (r + gamma * v[ns])
-    return backed_up_v
+    state_value = sum(
+        p_a * backup_action_value(mdp, state, a, v, gamma)
+        for a, p_a in pi(state)
+    )
+    return state_value
 
 
 def backup_single_state_optimal_actions(
@@ -62,12 +82,10 @@ def backup_single_state_optimal_actions(
       action_value: corresponding maximising action value
     """
     available_actions = mdp.actions(state)
-    all_action_values = np.zeros(len(available_actions))
-    for idx, a in enumerate(available_actions):
-        ns_ptable, r = mdp.next_states_and_rewards(state, a)
-        all_action_values[idx] = sum(
-            p_ns * (r + gamma * v[ns]) for ns, p_ns in zip(*ns_ptable)
-        )
+    all_action_values = [
+        backup_action_value(mdp, state, action, v, gamma)
+        for action in available_actions
+    ]
     action_value = np.max(all_action_values)
     is_maxing = np.isclose(all_action_values, action_value)
     actions = [a for a, m in zip(available_actions, is_maxing) if m]
