@@ -86,7 +86,7 @@ def backup_single_state_optimal_actions(
         backup_action_value(mdp, state, action, v, gamma)
         for action in available_actions
     ]
-    action_value = np.max(all_action_values)
+    action_value = max(all_action_values)
     is_maxing = np.isclose(all_action_values, action_value)
     actions = [a for a, m in zip(available_actions, is_maxing) if m]
     assert len(actions) > 0
