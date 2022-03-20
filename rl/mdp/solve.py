@@ -62,7 +62,6 @@ def backup_single_state_optimal_actions(
     state: State,
     v: Mapping[State, float],
     gamma: float,
-    tol: float = 1.0e-8,
 ) -> Tuple[List[Action], float]:
     """Returns the actions and corresponding value that maximise expected
     return from `state`, estimated using the current state value mapping
@@ -73,8 +72,6 @@ def backup_single_state_optimal_actions(
       state: current state, for which optimal action is estimated
       v: estimated state values, used to back-up optimal action
       gamma: discount factor
-      tol: tolerance for determining whether values for two different
-        actions are essentially equal (to within numerical error)
 
     Returns:
       actions: actions that maximise the action value (could be more than
