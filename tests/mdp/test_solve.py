@@ -8,6 +8,7 @@ from rl.mdp.solve import (
     backup_action_value,
     backup_single_state_value,
     backup_single_state_optimal_actions,
+    optimal_actions_from_state_values,
     backup_policy_values_operator,
     backup_optimal_values,
     exact_state_values,
@@ -24,6 +25,12 @@ def gamma() -> float:
 def v() -> Dict[TState, float]:
     """Initial state values for use in tests."""
     return {"A": 3.0, "B": 1.0, "C": 0.0}
+
+
+@pytest.fixture
+def tying_v() -> Dict[TState, float]:
+    """Alternative state values with tied optimal actions for state A."""
+    return {"A": 2.0, "B": 20 / 9, "C": 0.0}
 
 
 @pytest.fixture
@@ -105,6 +112,8 @@ class TestSolveBasicComponents:
     def test_backup_single_state_optimal_actions_with_tie(
         self,
         test_mdp: FiniteMDP,
+        tying_v: Dict[TState, float],
+        gamma: float,
     ) -> None:
         """Tests the backup_single_state_optimal_actions method in a case
         where there are multiple actions that return the same value."""
@@ -117,14 +126,21 @@ class TestSolveBasicComponents:
         # the simultaneous equations to show that `v[B]` needs to be 20/9
         # for this to be the case, resulting in an action value update for
         # state A of 1.
-        gamma = 0.9
         state = TState("A")
-        v = {"A": 2.0, "B": 20 / 9, "C": 0.0}
         actions, action_value = backup_single_state_optimal_actions(
-            test_mdp, state, v, gamma
+            test_mdp, state, tying_v, gamma
         )
         assert_almost_equal(action_value, 1.0)
         assert set(actions) == {TAction("L"), TAction("R")}
+
+    def test_optimal_actions_from_state_values(
+        self, test_mdp: FiniteMDP, tying_v: Dict[TState, float], gamma: float
+    ) -> None:
+        act_map = optimal_actions_from_state_values(test_mdp, tying_v, gamma)
+        des_map = {"A": {"L", "R"}, "B": {"R"}, "C": {"L", "R"}}
+        assert act_map.keys() == des_map.keys()
+        for s in act_map.keys():
+            assert set(act_map[s]) == des_map[s]
 
     def test_backup_policy_values_operator(
         self,
@@ -139,7 +155,6 @@ class TestSolveBasicComponents:
             [[0.0, 0.45, 0.55], [0.75, 0.0, 0.25], [0.0, 0.0, 1.0]]
         )
         assert_almost_equal(A, expected_A)
-
         # b should be a vector of expected reward per starting state
         expected_b = np.array([0.1, -0.5, 0.0])
         assert_almost_equal(b, expected_b)

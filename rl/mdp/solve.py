@@ -90,6 +90,17 @@ def backup_single_state_optimal_actions(
     return actions, action_value
 
 
+def optimal_actions_from_state_values(
+    mdp: FiniteMDP[State, Action],
+    v: Mapping[State, float],
+    gamma: float,
+) -> Dict[State, List[Action]]:
+    return {
+        s: backup_single_state_optimal_actions(mdp, s, v, gamma)[0]
+        for s in mdp.states
+    }
+
+
 def backup_policy_values_operator(
     mdp: FiniteMDP[State, Action],
     gamma: float,
