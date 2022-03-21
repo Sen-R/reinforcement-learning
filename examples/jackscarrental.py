@@ -1,6 +1,11 @@
 from typing import Collection, Mapping
+from numpy.testing import assert_almost_equal
 from rl.mdp.jackscarrental import JacksCarRental, CarCounts
-from rl.mdp.solve import policy_iteration, exact_state_values
+from rl.mdp.solve import (
+    policy_iteration,
+    value_iteration,
+    optimal_actions_from_state_values,
+)
 
 
 # Jack's car rental problem with parameters specified in Sutton, Barto
@@ -34,13 +39,23 @@ def plot_2d_function(
 
 
 if __name__ == "__main__":
-    v = {s: 0.0 for s in jcr.states}
+    v_pol_it = {s: 0.0 for s in jcr.states}
     pi = {s: jcr.actions(s)[0] for s in jcr.states}
-    policy_iteration(v, pi, jcr, 0.9, 0.1)
-    v_exact = exact_state_values(jcr, 0.9, lambda s: ((pi[s], 1.0),))
+    policy_iteration(v_pol_it, pi, jcr, 0.9, 0.1)
+    print("===== Policy Iteration =====")
     print("State values:")
-    plot_2d_function(v, 3, 0)
+    plot_2d_function(v_pol_it, 3, 0)
     print("\nOptimal action:")
     plot_2d_function(pi, 3, 0)
-    print("\nExact state values:")
-    plot_2d_function(v_exact, 3, 0)
+
+    # Corroborate against results from value iteration
+    v_val_it = {s: 0.0 for s in jcr.states}
+    value_iteration(v_val_it, jcr, 0.9, 0.001, maxiter=100)
+    for s in jcr.states:
+        assert_almost_equal(
+            v_pol_it[s], v_val_it[s], err_msg=f"State: {s}", decimal=0
+        )
+    optimal_actions_map = optimal_actions_from_state_values(jcr, v_val_it, 0.9)
+    for state, actions_list in optimal_actions_map.items():
+        assert len(actions_list) > 0, (state, actions_list)
+        assert pi[state] in actions_list, (state, pi[state], actions_list)
