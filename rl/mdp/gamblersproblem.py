@@ -20,7 +20,14 @@ class GamblersProblem(FiniteMDP[int, int]):
         return list(range(0, self.goal + 1))
 
     def actions(self, state: int) -> List[int]:
-        return list(range(0, min(state, self.goal - state) + 1))
+        # Note, although a stake of zero is technically always allowed,
+        # this will result in the MDP returning to an identical state
+        # at the next turn. Hence we disallow this option except when
+        # the MDP is already in a terminal state.
+        if state == 0 or state == self.goal:
+            return [0]
+        else:
+            return list(range(1, min(state, self.goal - state) + 1))
 
     def s2i(self, state: int) -> int:
         return state

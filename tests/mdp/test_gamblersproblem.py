@@ -20,8 +20,8 @@ class TestGamblersProblem:
     @pytest.mark.parametrize(
         "state,expected_actions",
         [
-            (3, range(0, 4)),
-            (90, range(0, 11)),
+            (3, range(1, 4)),
+            (90, range(1, 11)),
             (0, [0]),
             (100, [0]),
         ],
@@ -30,7 +30,7 @@ class TestGamblersProblem:
         self, gp: FiniteMDP, state: int, expected_actions: Iterable[int]
     ) -> None:
         actual_actions = gp.actions(state)
-        assert actual_actions, list(expected_actions)
+        assert actual_actions == list(expected_actions)
 
     @pytest.mark.parametrize("state,index", [(0, 0), (13, 13), (100, 100)])
     def test_s2i_i2s(self, gp: FiniteMDP, state: int, index: int) -> None:
