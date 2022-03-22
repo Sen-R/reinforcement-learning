@@ -207,6 +207,7 @@ def jcr() -> JacksCarRental:
 
 
 class TestJacksCarRentalFunctional:
+    @pytest.mark.slow
     def test_policy_iteration_yields_textbook_solution(
         self, jcr: JacksCarRental
     ) -> None:
