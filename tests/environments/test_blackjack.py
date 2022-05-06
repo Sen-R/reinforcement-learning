@@ -79,8 +79,8 @@ class TestBlackjack:
 
     def test_set_custom_deck(self) -> None:
         starting_state = BJState(12, 10, False)
-        bj = Blackjack(starting_state, deck=RepeatingDeck([0, 9]))
-        assert next(bj.deck) == 0
+        bj = Blackjack(starting_state, deck=RepeatingDeck([1, 9]))
+        assert next(bj.deck) == 1
         assert next(bj.deck) == 9
 
     def test_set_starting_state(self) -> None:
