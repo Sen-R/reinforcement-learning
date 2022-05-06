@@ -72,10 +72,25 @@ class Blackjack(Environment):
     STICK = 0
 
     def __init__(
-        self, starting_state: BJState, deck: Optional[Iterator[int]] = None
+        self,
+        starting_state: Optional[BJState] = None,
+        deck: Optional[Iterator[int]] = None,
     ):
-        self._starting_state = copy(starting_state)
         self.deck = InfiniteDeck() if deck is None else deck
+        if starting_state is None:
+            current_count, dealer_card, usable_ace = 0, 0, True
+            current_count, usable_ace = Blackjack.update_count(
+                current_count, usable_ace, next(self.deck)
+            )
+            current_count, usable_ace = Blackjack.update_count(
+                current_count, usable_ace, next(self.deck)
+            )
+            dealer_card = next(self.deck)
+            self._starting_state = BJState(
+                current_count, dealer_card, usable_ace
+            )
+        else:
+            self._starting_state = copy(starting_state)
         self.reset()
 
     def act(self, action: int) -> int:

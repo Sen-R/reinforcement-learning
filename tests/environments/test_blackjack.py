@@ -88,6 +88,11 @@ class TestBlackjack:
         bj = Blackjack(starting_state=starting_state)
         assert bj.observe() == starting_state
 
+    def test_default_initialisation_deals_two_cards_from_deck(self) -> None:
+        deck = RepeatingDeck([1, 5, 7, 2])
+        bj = Blackjack(deck=deck)
+        assert bj.state == BJState(16, 7, True)
+
     def test_action_codes(self) -> None:
         assert Blackjack.HIT == 1
         assert Blackjack.STICK == 0
